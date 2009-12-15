@@ -7,7 +7,6 @@
         layers by providing embeded data in your domain classes as original Grails Scaffolding does with Ajax and HTML</description>
   <documentation>http://docs.codehaus.org/display/GFS/Grails+Flex+Scaffold</documentation>
   <resources>
-    <resource>BuildConfig</resource>
     <resource>GrailsFlexScaffoldFilters</resource>
     <resource>spring.resources</resource>
     <resource>UrlMappings</resource>
