@@ -203,7 +203,7 @@
 		</mx:Canvas>
 	</mx:Canvas>
 
-	<mx:TabNavigator id="tn" width="100%" height="100%" paddingTop="5" change="changeTab()">
+	<mx:TabNavigator id="tn" width="100%" height="100%" paddingTop="5" change="changeTab()" creationPolicy="none">
 		<!--CRUDVIEWS-->
 	</mx:TabNavigator>
 	<mx:HBox width="100%" styleName="translateComboContainer">
