@@ -53,7 +53,7 @@
 <FONT color="green">050</FONT>        }<a name="line.50"></a>
 <FONT color="green">051</FONT>    <a name="line.51"></a>
 <FONT color="green">052</FONT>        public static boolean hasFlexRemotingConvention(GrailsServiceClass serviceClass) {<a name="line.52"></a>
-<FONT color="green">053</FONT>            List exposeList = (List) GrailsClassUtils.getStaticPropertyValue(serviceClass.getClazz(), EXPOSE_PROPERTY);<a name="line.53"></a>
+<FONT color="green">053</FONT>            List&lt;?&gt; exposeList = (List&lt;?&gt;) GrailsClassUtils.getStaticPropertyValue(serviceClass.getClazz(), EXPOSE_PROPERTY);<a name="line.53"></a>
 <FONT color="green">054</FONT>            if (exposeList != null &amp;&amp; exposeList.contains(FLEX_REMOTING)) {<a name="line.54"></a>
 <FONT color="green">055</FONT>                return true;<a name="line.55"></a>
 <FONT color="green">056</FONT>            }<a name="line.56"></a>
