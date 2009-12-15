@@ -20,6 +20,12 @@
 import org.springframework.web.servlet.support.RequestContextUtils as RCU
 import org.springframework.web.context.request.RequestContextHolder as RCH
 
+<%
+if(domainClass.packageName || domainClass.packageName != "")
+{
+    println "import ${domainClass.fullName}"
+}
+%>
 class ${className}Service 
 {
 
@@ -98,14 +104,17 @@ class ${className}Service
 			pageFilter
 		}
 		
-		def destroy(${className} ${domainClass.propertyName})
+		def destroy(def ${domainClass.propertyName}List)
 		{
-			${domainClass.propertyName}.delete(flush:true)
+			${domainClass.propertyName}List.each
+			{
+				it.delete(flush:true)
+				
+				if (it.hasErrors())
+					throw new Exception(getMessages(it.errors))
+			}
 			
-			if (!${domainClass.propertyName}.hasErrors())
-				return ${domainClass.propertyName}
-			
-			throw new Exception(getMessages(${domainClass.propertyName}.errors))
+			${domainClass.propertyName}List
 		}
 		
 		private def getMessages(errors) 
@@ -124,4 +133,16 @@ class ${className}Service
 			
 			errorString
 		}
+		
+<%	import org.cubika.labs.scaffolding.utils.ConstraintValueUtils as CVU
+			def actions = CVU.actions(domainClass)
+			
+			actions.each
+			{
+				println "		def ${it.toLowerCase()}(${className} ${domainClass.propertyName})"
+				println "		{"
+				println "			return \"add logic to ${it}\""
+				println	"		}"
+			}
+%>
 }

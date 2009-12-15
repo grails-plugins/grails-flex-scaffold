@@ -17,12 +17,14 @@ includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_ValidateDomainCl
 target('default': "") 
 {
 	depends(validateDomainClass, generateFlexDefaultStructure, generateFlexBuilder, createFlexProperties, generateDefaults )
-	generateService(args.trim())
+	generateService(domainClass:getDomainClass(args))
 }
 
-target(generateService: "Generate Domain Delegate") 
-{
-	def domainClass = getDomainClass(args)
+//Generate Domain Delegate
+generateService =
+{ Map args = [:] ->
+	
+	def domainClass = args["domainClass"]
   
 	dftg = new DefaultFlexTemplateGenerator();
 	
@@ -32,8 +34,8 @@ target(generateService: "Generate Domain Delegate")
 	classNameFile = "./grails-app/services/${domainClass.shortName}Service.groovy"
 	templateFile = "${flexScaffoldPluginDir}"+antProp.'service.file'
 	
-	if (new File(classNameFile).exists())
-		return
+	//if (new File(classNameFile).exists())
+	//	return
 	
 	dftg.generateTemplate(domainClass,templateFile,classNameFile)
 	println "${classNameFile} Done!"

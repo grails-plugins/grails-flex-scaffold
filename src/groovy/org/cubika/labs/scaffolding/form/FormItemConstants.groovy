@@ -28,6 +28,15 @@ class FormItemConstants
 	static final String TEXT_INPUT = "textinput"
 	static final String TEXT_AREA = "textarea"
 	static final String AUTO_COMPLETE = "autocomplete"
+	static final String COMBO_BOX = "combobox"
+	static final String RICH_TEXT = "richtext"
+	static final String COLOR_PICKER = "colorpicker"
+	static final String V_SLIDER = "vslider"
+	static final String H_SLIDER = "hslider"
+	static final String IMAGE_UPLOAD = "imageupload"
+	static final String FILE_UPLOAD = "fileupload"
+	static final String SNAP_UPLOAD = "snapshotupload"
+    static final String PASSWORD = "password"
 	
 	//constraints
 	static final String IN_PLACE = "inPlace"

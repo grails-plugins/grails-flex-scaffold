@@ -53,11 +53,11 @@ abstract class AbstractBuildFormItem implements BuildFormItem
 		def sw = new StringWriter()
 		def pw = new PrintWriter(sw)
 
-		pw.println 	"	 <mx:FormItem label=\"${property.naturalName}\" id=\"${getFormItemID()}\" width=\"100%\">"
+		pw.println 	"	 		<mx:FormItem label=\"{MultipleRM.getString(MultipleRM.localePrefix,'${property.domainClass.propertyName}.${property.name}')}\" id=\"${getFormItemID()}\" width=\"100%\">"
 		
-		pw.println	buildFormItemComponent(binding)
+		pw.print	buildFormItemComponent(binding)
 		
-		pw.println 	"	 </mx:FormItem>"
+		pw.println 	"	 		</mx:FormItem>"
 		
 		sw.toString()
 	}
@@ -79,7 +79,7 @@ abstract class AbstractBuildFormItem implements BuildFormItem
 	}
 	
 	/**
-	 * @see #BuildFormItem
+	 * @see org.cubika.labs.scaffolding.form.BuildFormItem
 	 */
 	String getFormItemID()
 	{
@@ -87,7 +87,7 @@ abstract class AbstractBuildFormItem implements BuildFormItem
 	}
 	
 	/**
-	 * @see #BuildFormItem
+	 * @see org.cubika.labs.scaffolding.form.BuildFormItem
 	 */
 	String getRemoveChildEditView()
 	{
@@ -96,7 +96,7 @@ abstract class AbstractBuildFormItem implements BuildFormItem
 	}
 	
 	/**
-	 * @see #BuildFormItem
+	 * @see org.cubika.labs.scaffolding.form.BuildFormItem
 	 */
 	String getRemoveChildCreateView()
 	{

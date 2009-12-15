@@ -8,4 +8,5 @@
 //
 //    ant.mkdir(dir:"${basedir}/grails-app/jobs")
 //
+ant.copy(file:"${pluginBasedir}/grails-app/i18n/i18n.properties",tofile:"${basedir}/grails-app/i18n/i18n.properties")
 compile()

@@ -50,7 +50,7 @@ public class FlexUtils {
     }
 
     public static boolean hasFlexRemotingConvention(GrailsServiceClass serviceClass) {
-        List exposeList = (List) GrailsClassUtils.getStaticPropertyValue(serviceClass.getClazz(), EXPOSE_PROPERTY);
+        List<?> exposeList = (List<?>) GrailsClassUtils.getStaticPropertyValue(serviceClass.getClazz(), EXPOSE_PROPERTY);
         if (exposeList != null && exposeList.contains(FLEX_REMOTING)) {
             return true;
         }

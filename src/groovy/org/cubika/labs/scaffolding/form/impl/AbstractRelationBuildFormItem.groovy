@@ -1,5 +1,3 @@
-package org.cubika.labs.scaffolding.form.impl
-
 ////////////////////////////////////////////////////////////////////
 // Copyright 2009 the original author or authors.
 //
@@ -15,10 +13,9 @@ package org.cubika.labs.scaffolding.form.impl
 // See the License for the specific language governing permissions and
 // limitations under the License.
 ////////////////////////////////////////////////////////////////////
+package org.cubika.labs.scaffolding.form.impl
 
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver
-import grails.util.BuildSettingsHolder
-
+import org.cubika.labs.scaffolding.utils.FlexScaffoldingUtils as FSU
 import org.cubika.labs.scaffolding.form.BuildFormItem
 import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
 
@@ -31,11 +28,12 @@ import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
  */
 abstract class AbstractRelationBuildFormItem extends AbstractBuildFormItem
 {	
+	static private def viewMaps = [:]
+	
 	protected def defaultTemplateGenerator = new DefaultFlexTemplateGenerator()
 	protected def flexScaffoldPluginDir
 	protected def ant
 	protected def antProp
-	protected def resolver = new PathMatchingResourcePatternResolver()
 	
 	/**
 	 * Constructor
@@ -52,43 +50,26 @@ abstract class AbstractRelationBuildFormItem extends AbstractBuildFormItem
 	 */
 	protected void generateViews(property)
 	{
-		ant = new AntBuilder()
-		ant.property(environment: "env")
-		def grailsHome = ant.antProject.properties."env.GRAILS_HOME"
+		String key = property.referencedDomainClass.toString()
 		
-		def fileProperties = resolveResources("/*/scripts/flexScaffold.properties")
-		
-		ant.property(file:fileProperties)
-		antProp = ant.project.properties
-	}
-	
-	/**
-	 * Resolve path for pluging dir  
-	 * @param pattern - String with partil path 
-	 * @return a concret path
-	 */
-	protected def resolveResources(pattern)
-	{
-		try 
+		if (!viewMaps.containsKey("$key#this"))
 		{
-			//if is a localplugin
-			def path = resolver.getResources("file:${BuildSettingsHolder.settings?.projectPluginsDir.canonicalFile}${pattern}").file[0]
-			
-			if (!path)
-			{
-				//if is a globalplugin
-				path = resolver.getResources("file:${BuildSettingsHolder.settings?.globalPluginsDir.canonicalFile}${pattern}").file[0]
-			}
-			
-			//otherwise
-			if (!path)
-				throw new Exception()
+			//Set DomainClass into map to avoid die cycle
 				
-			return path
-    }
-    catch (Throwable e) 
-		{
-			throw new Exception("${BuildSettingsHolder.settings?.projectPluginsDir.canonicalFile}${pattern} Not Found")
+			//viewMaps.put("$key#this",property.referencedDomainClass)
+			
+			ant = new AntBuilder()
+			ant.property(environment: "env")
+			def grailsHome = ant.antProject.properties."env.GRAILS_HOME"
+		
+			def fileProperties = FSU.resolveResources("/*/scripts/flexScaffold.properties")
+		
+			ant.property(file:fileProperties)
+			antProp = ant.project.properties
+			
+			generateInnerViews(property)
 		}
 	}
+	
+	abstract protected void generateInnerViews(property)
 }

@@ -1,20 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
-<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:utils="com.cubika.labs.utils.*"
-				xmlns:cubikalabs="http://cubikalabs.cub2k.com/2009/commons"
-				showCloseButton="true" close="cancel()" paddingTop="15" paddingBottom="15"
-				creationComplete="doInit()" title="${domainClass.naturalName}">
+<?xml version="1.0" encoding="utf-8"?><%
+import org.cubika.labs.scaffolding.utils.FlexScaffoldingUtils as FSU
+def props = FSU.getPropertiesWithoutIdentity(domainClass,true)%>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:cubikalabs="http://cubikalabs.cub2k.com/2009/commons"
+	xmlns:utils="com.cubika.labs.utils.*"
+	showCloseButton="true"
+	close="cancel()"
+	paddingTop="15"
+	paddingBottom="15"
+	creationComplete="doInit()" 
+	title="{resourceManager.getString(appModel.localePrefix,'${domainClass.propertyName}.label')}"
+    <% println " ${FSU.getNameSpace(props)}>" %>
 	
 	<mx:Script>
 		<![CDATA[
 				
 			import mx.events.FlexEvent;	
 			import mx.validators.Validator;
+			
+			import com.cubika.labs.utils.MultipleRM;
+			
+			import model.ApplicationModelLocator;
 
 			import vo.${domainClass.propertyName}.${className}VO;	
 <%
 			import org.cubika.labs.scaffolding.utils.FlexScaffoldingUtils as FSU
-
-			  def props = FSU.getPropertiesWithoutIdentity(domainClass,true)																										
 																
 				props.each {
 					if (it.isOneToOne())
@@ -22,7 +32,10 @@
 				}	
 %>
 			[Bindable]
-			public var vo:${className}VO;
+			public var valueObject:${className}VO;
+			
+			[Bindable]
+			public var appModel:ApplicationModelLocator = ApplicationModelLocator.instance;
 			
 			public var clickOk:Function;
 			public var cancel:Function;
@@ -37,7 +50,7 @@
 				
 			public function getVO():${className}VO
 			{
-				var _vo:${className}VO = vo;					
+				var _vo:${className}VO = valueObject;
 
 <%
 				List builders = []
@@ -87,13 +100,13 @@
 	<mx:Form width="100%">
 <%	import org.cubika.labs.scaffolding.form.factory.BuildFormItemFactory as BFIF
 			builders.each { buildFormItem ->
-					print "${buildFormItem.build("vo.${buildFormItem.property.name}")}"
+					print "${buildFormItem.build("valueObject.${buildFormItem.property.name}")}"
 			}
 %>	</mx:Form>
 				
 	<mx:HBox width="100%" horizontalAlign="right" paddingRight="15">
-		<mx:Button label="Aceptar" click="saveOrUpdate()"/>
-		<mx:Button label="Cancelar (ESC)" click="cancel()"/>
+		<mx:Button label="{MultipleRM.getString(MultipleRM.localePrefix,'generic.accept')}" click="saveOrUpdate()"/>
+		<mx:Button label="{MultipleRM.getString(MultipleRM.localePrefix,'generic.cancel')} (ESC)" click="cancel()"/>
 	</mx:HBox>
 	
 </mx:TitleWindow>

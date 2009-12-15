@@ -43,7 +43,7 @@ class ExternalManyToOneBuildFormItem extends AbstractRelationBuildFormItem
 		def sw = new StringWriter()
 		def pw = new PrintWriter(sw)
 		
-		pw.println	"		<${property.name}:${property.referencedDomainClass.shortName}ManyToOneView id=\"${getID()}\" "+
+		pw.println	"				<${property.name}:${property.referencedDomainClass.shortName}ManyToOneView id=\"${getID()}\" "+
 								"selectedItem=\"{${binding}}\"/>"
 		
 		generateViews(property)
@@ -70,13 +70,20 @@ class ExternalManyToOneBuildFormItem extends AbstractRelationBuildFormItem
 	/**
 	 * @see #AbstractRelationBuildFormItem
 	 */
-	protected void generateViews(property)
+	protected void generateInnerViews(property)
 	{
-		super.generateViews(property)
-
-		def nameDir = antProp.'view.destdir'+"/${property.domainClass.propertyName}/${property.referencedDomainClass.propertyName}"
+		def nameDir = antProp.'view.destdir'+"/${property.referencedDomainClass.propertyName}"
+		
+		if (!new File(nameDir).exists())
+			new File(nameDir).mkdir()
+		
+		nameDir = "$nameDir/external"
+		
+		if (!new File(nameDir).exists())
+			new File(nameDir).mkdir()
+			
 		def classNameDir = "${nameDir}/${property.referencedDomainClass.shortName}ManyToOneView.mxml"
-		def templateDir = resolveResources("/*"+antProp.'view.eotolistfile').toString()
+		def templateDir = FSU.resolveResources("/*"+antProp.'view.eotolistfile').toString()
 
 		if (!new File(nameDir).exists())
 			new File(nameDir).mkdir()

@@ -16,16 +16,15 @@ package org.cubika.labs.scaffolding.form.impl
 // limitations under the License.
 ////////////////////////////////////////////////////////////////////
 
-import org.cubika.labs.scaffolding.form.BuildFormItem
 import org.cubika.labs.scaffolding.utils.FlexScaffoldingUtils as FSU
 
 /**
- * Extends AbstractBuildFormItem adding textarea building functionallity
+ * Extends AbstractBuildFormItem adding textinput building functionallity
  *
  * @author Ezequiel Martin Apfel
  * @since  3-Feb-2009
  */
-class TextInputBuildFormItem  extends AbstractBuildFormItem 
+class TextInputBuildFormItem extends AbstractBuildFormItem 
 {
 	TextInputBuildFormItem(property)
 	{
@@ -41,7 +40,7 @@ class TextInputBuildFormItem  extends AbstractBuildFormItem
 		def sw = new StringWriter()
     	def pw = new PrintWriter(sw)
 
-		pw.println	"		<mx:TextInput id=\"${getID()}\" text=\"{${binding}}\" width=\"217\"/>"
+		pw.println	"				<mx:TextInput id=\"${getID()}\" text=\"{${binding}}\" width=\"217\"/>"
 		
 		sw.toString()
 	}

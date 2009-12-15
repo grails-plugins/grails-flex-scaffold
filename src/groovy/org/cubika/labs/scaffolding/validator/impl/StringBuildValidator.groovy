@@ -27,7 +27,7 @@ import org.cubika.labs.scaffolding.validator.BuildValidator
 class StringBuildValidator extends AbstractBuildValidator
 {	
 	/**
-	 * @see org.cubika.labs.scaffolding.validator.BuildValidator.build()
+	 * @see org.cubika.labs.scaffolding.validator.BuildValidator
 	 */
 	def build(id, value, constraint)
 	{

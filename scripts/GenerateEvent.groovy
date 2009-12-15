@@ -1,5 +1,6 @@
 import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
+import org.cubika.labs.scaffolding.utils.ConstraintValueUtils as CVU
 
 grailsHome = Ant.project.properties."environment.GRAILS_HOME"
 
@@ -17,12 +18,14 @@ includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_ValidateDomainCl
 target('default': "") 
 {
 	depends( validateDomainClass, generateFlexDefaultStructure, generateFlexBuilder,	createFlexProperties, generateDefaults )
-	generateEvents(args.trim())
+	generateEvents(domainClass:getDomainClass(args))
 }
 
-target(generateEvents: "Generate Event") 
-{
-	def domainClass = getDomainClass(args)
+//Generate Event
+generateEvents = 
+{ Map args = [:] ->
+	
+	def domainClass = args["domainClass"]
   
 	dftg = new DefaultFlexTemplateGenerator();
 
@@ -38,13 +41,28 @@ target(generateEvents: "Generate Event")
 	templateFile = "${flexScaffoldPluginDir}"+antProp.'event.crudfile'
 	generateEvent(domainClass,templateFile,classNameFile)
 
-	classNameFile = "${nameDir}/Get${domainClass.shortName}PaginationEvent.as"
+	classNameFile = "${nameDir}/${domainClass.shortName}GetPaginationEvent.as"
 	templateFile = "${flexScaffoldPluginDir}"+antProp.'event.paginationfile'
-	generateEvent(domainClass,templateFile,classNameFile)	
+	generateEvent(domainClass,templateFile,classNameFile)
+	
+	classNameFile = "${nameDir}/${domainClass.shortName}ExternalGetPaginationEvent.as"
+	templateFile = "${flexScaffoldPluginDir}"+antProp.'event.paginationfile'
+	generateEvent(domainClass,templateFile,classNameFile,"External")	
+	
+	//generate Event Actions
+	def actions = CVU.actions(domainClass)
+	
+	actions.each
+	{
+		classNameFile = "${nameDir}/${domainClass.shortName}${it}Event.as"
+		templateFile = "${flexScaffoldPluginDir}"+antProp.'event.actionevent'
+		dftg.generateTemplate(domainClass,templateFile,classNameFile,it)
+	}
+	//end generate Event Actions
 }
 
-private void generateEvent(domainClass,templateFile,classNameFile)
+private void generateEvent(domainClass,templateFile,classNameFile,typeName="")
 {	
-	dftg.generateTemplate(domainClass,templateFile,classNameFile)
+	dftg.generateTemplate(domainClass,templateFile,classNameFile,typeName)
 	println "${classNameFile} Done!"
 }

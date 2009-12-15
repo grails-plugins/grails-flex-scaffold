@@ -32,22 +32,16 @@ package model.${domainClass.propertyName}
 		public const EDIT_VIEW:int = 1;
 		public const EDIT:String = "editView";
 		public const CREATE:String = "createView";
-		
+	
 		public var editView:Boolean = false;
-		
+		public var callFromPop:String;
+
 		public var page:PageFilter = new PageFilter();
+		public var externalpage:PageFilter = new PageFilter();
 		public var selected:${className}VO;
 		public var selectedIndexView:int = LIST_VIEW;
 		public var listNoPaged:ArrayCollection;
-//<%
-//import org.cubika.labs.scaffolding.utils.FlexScaffoldingUtils as FSU
-//def props = FSU.getPropertiesWithoutIdentity(domainClass,true)																										
-//props.each 
-//{
-//	if (it.isOneToOne())
-//		println "		public var ${it.referencedDomainClass.propertyName}:ArrayCollection"	
-//}
-//%>
+
 		public function get list():ArrayCollection
 		{
 			return page.list;
@@ -56,6 +50,16 @@ package model.${domainClass.propertyName}
 		public function set list(value:ArrayCollection):void
 		{
 			page.list = value;
+		}
+		
+		public function get externallist():ArrayCollection
+		{
+			return externalpage.list;
+		}
+		
+		public function set externallist(value:ArrayCollection):void
+		{
+			externalpage.list = value;
 		}
 		
 		public function updateList(vo:${className}VO):void
@@ -76,10 +80,32 @@ package model.${domainClass.propertyName}
 			}
 			
 			list.addItem(vo);
-			
+
+            updateExternalList(vo);
 			updateListNoPaged(vo);
 		}
-		
+
+        public function updateExternalList(vo:${className}VO):void
+		{
+			var i:int=0;
+
+			if (!externallist)
+				externallist = new ArrayCollection();
+
+			for each (var item:${className}VO in externallist)
+			{
+				if (item.id == vo.id)
+				{
+					externallist.setItemAt(vo,i);
+					return
+				}
+				i++;
+			}
+
+			externallist.addItem(vo);
+		}
+
+
 		private function updateListNoPaged(vo:${className}VO):void
 		{
 			var i:int=0;
@@ -100,36 +126,43 @@ package model.${domainClass.propertyName}
 		}
 		
 		
-		public function removeItem(vo:${className}VO):void
+		public function removeItems(vos:Array):void
 		{
-			var i:int=0;
+			var i:int;
 			
-			for each (var item:${className}VO in list)
+			for each (var itemDeleted:${className}VO in vos)
 			{
-				if (item.id == vo.id)
+				i = 0;
+				for each (var item:${className}VO in list)
 				{
-					list.removeItemAt(i);
-					return
+					if (item.id == itemDeleted.id)
+					{
+						list.removeItemAt(i);
+						break;
+					}
+					i++;
 				}
-				i++;
 			}
-			removeItem4ListNoPaged(vo);
+			removeItem4ListNoPaged(vos);
 		}
 		
-		private function removeItem4ListNoPaged(vo:${className}VO):void
+		private function removeItem4ListNoPaged(vos:Array):void
 		{
-			var i:int=0;
+			var i:int;
 			
-			for each (var item:${className}VO in listNoPaged)
+			for each (var itemDeleted:${className}VO in vos)
 			{
-				if (item.id == vo.id)
+				i = 0;
+				for each (var item:${className}VO in listNoPaged)
 				{
-					listNoPaged.removeItemAt(i);
-					return
+					if (item.id == itemDeleted.id)
+					{
+						listNoPaged.removeItemAt(i);
+						break;
+					}
+					i++;
 				}
-				i++;
 			}
-			
 		}
 		
 		public function get state():String

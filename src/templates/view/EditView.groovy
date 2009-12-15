@@ -6,13 +6,17 @@ def props = FSU.getPropertiesWithoutIdentity(domainClass,true)%>
 	xmlns:cubikalabs="http://cubikalabs.cub2k.com/2009/commons"
 	creationComplete="doInit()"
 	paddingLeft="10" paddingTop="10" paddingRight="10"
-	horizontalAlign="center"
-	<% println " ${FSU.getNameSpace(props)}>" %>
+	horizontalAlign="center"<% println " ${FSU.getNameSpace(props)}>" %>
 	
 	<mx:Script>
 		<![CDATA[
+		    import com.adobe.crypto.SHA256;
+		    import mx.events.ValidationResultEvent;
+			import mx.controls.Alert;
 			
 			import mx.binding.utils.BindingUtils;
+			
+			import com.cubika.labs.utils.MultipleRM;
 			
 			import event.DefaultNavigationEvent;
 			import event.${domainClass.propertyName}.${className}CRUDEvent;
@@ -25,18 +29,31 @@ def props = FSU.getPropertiesWithoutIdentity(domainClass,true)%>
 			import vo.${domainClass.propertyName}.${className}VO;	
 <%												
 				props.each {
-					if (it.isOneToOne() || it.isManyToOne())
-						println "			${FSU.getImport4AS3(it)}"
+					def imp = FSU.getImport4AS3(it)
+					
+					if ((it.isOneToOne() || it.isManyToOne()) && imp)
+						println "			${imp}"
 				}	
 %>
+			[Bindable]
+			public var appModel:ApplicationModelLocator = ApplicationModelLocator.instance;
+			
 			[Bindable]
 			private var _model:${className}Model = <% println "ApplicationModelLocator.instance.${domainClass.propertyName}Model;" %>
 				
 			private function saveOrUpdate():void
 			{
-				if (validators.length >= 0 && Validator.validateAll(validators).length == 0)
+			    var messageResult:Array = [];
+				var err:ValidationResultEvent;
+				var errField:String;
+				var errorResult:Array = Validator.validateAll(validators)
+
+				if (validators.length >= 0 && errorResult.length == 0)
 				{
-					var _vo:${className}VO = _model.selected;					
+					var _vo:${className}VO = _model.selected;	
+					
+					if (!_vo)
+						_vo = new ${className}VO();				
 
 <%							import org.cubika.labs.scaffolding.form.factory.BuildFormItemFactory as BFIF
 								List builders = []
@@ -52,21 +69,34 @@ def props = FSU.getPropertiesWithoutIdentity(domainClass,true)%>
 %>
 					new ${className}CRUDEvent(${className}CRUDEvent.SAVE_OR_UPDATE_EVENT,_vo).dispatch();
 				}
+				else
+				{
+				    for each (err in errorResult)
+				    {
+                        errField = FormItem(err.currentTarget.source.parent).label
+                        messageResult.push(errField + ": " + err.message);
+                    }
+
+					Alert.show(messageResult.join("\\n\\n"), "Invalid form...", Alert.OK);
+				}
 			}
 			
 			private function cancel():void
 			{
-				new DefaultNavigationEvent("${domainClass.propertyName}.edit").dispatch();
-				//No es una buena practica, pero me resulta de mas generar un evento/comando para nullear el selected en el model
-				_model.selected = null;
+				new ${className}CRUDEvent(${className}CRUDEvent.CANCEL_EVENT).dispatch();
 			}
-			
+
 			private function doInit():void
 			{		
+                if (_model.callFromPop)
+				{
+					statePopup();
+				}
+
 				addEventListener(KeyboardEvent.KEY_UP,keyboardHandler,false,0,true);
 				BindingUtils.bindSetter(changeState,_model,"editView");
 				setFocus();
-			}
+        	}
 			
 			override public function setFocus():void
 			{
@@ -74,13 +104,26 @@ def props = FSU.getPropertiesWithoutIdentity(domainClass,true)%>
 					${builders.getAt(0).getID()}.setFocus();
 			}
 			
-			
+			private function statePopup():void
+			{
+				formContainer.styleName = "";
+				formContainer.removeChild(lb${className});
+				form.setStyle("paddingTop",0);
+				form.setStyle("paddingBottom",10);
+				form.setStyle("paddingLeft",0);
+				form.setStyle("paddingRight",0);
+				setStyle("paddingTop",2);
+				setStyle("paddingBottom",10);
+				setStyle("paddingLeft",10);
+				setStyle("paddingRight",10);
+			}
+
 			private function keyboardHandler(e:KeyboardEvent):void
 			{
 				if (e.keyCode == Keyboard.ESCAPE)
 					cancel();
 				
-				if (e.keyCode == Keyboard.ENTER)
+				if (e.keyCode == Keyboard.F8)
 					saveOrUpdate();
 			}
 				
@@ -122,9 +165,9 @@ def props = FSU.getPropertiesWithoutIdentity(domainClass,true)%>
 		}
 %>	</mx:Array>
 	
-	<mx:VBox styleName="formContainer">
-		<mx:Label text="${className}" styleName="titleForm" width="100%"/>
-		<mx:Form width="100%">
+	<mx:VBox id="formContainer" styleName="formContainer">
+		<mx:Label text="{MultipleRM.getString(MultipleRM.localePrefix,'${domainClass.propertyName}.label')}" styleName="titleForm" width="100%" id="lb${className}"/>
+		<mx:Form width="100%" id="form">
 <%	
 			builders.each { buildFormItem ->
 					print "${buildFormItem.build("_model.selected.${buildFormItem.property.name}")}"
@@ -132,8 +175,8 @@ def props = FSU.getPropertiesWithoutIdentity(domainClass,true)%>
 %>		</mx:Form>
 				
 		<mx:HBox width="100%" horizontalAlign="right">
-			<mx:Button label="Submit (F8)" click="saveOrUpdate()"/>
-			<mx:Button label="Cancel (ESC)" click="cancel()"/>
+			<mx:Button label="{MultipleRM.getString(MultipleRM.localePrefix,'generic.submit')} (F8)" click="saveOrUpdate()"/>
+			<mx:Button label="{MultipleRM.getString(MultipleRM.localePrefix,'generic.cancel')} (ESC)" click="cancel()"/>
 		</mx:HBox>
 	</mx:VBox>
 

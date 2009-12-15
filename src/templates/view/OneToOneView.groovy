@@ -3,37 +3,44 @@
 	<mx:Script>
 			<![CDATA[
 				import mx.collections.ArrayCollection;
+				
+				import com.cubika.labs.utils.MultipleRM;
 
 				import mx.core.Application;
 				import mx.core.IFlexDisplayObject
 
 				import mx.managers.PopUpManager;
+				
+				import model.ApplicationModelLocator;
 
 				import vo.${domainClass.propertyName}.${className}VO;
 
 				[Bindable]
-				public var vo:${className}VO;
+				public var valueObject:${className}VO;
+				
+				[Bindable]
+				public var appModel:ApplicationModelLocator = ApplicationModelLocator.instance;
 
 				private var editView:IFlexDisplayObject;
 
 				private function showEditView():void
 				{
-					editView = PopUpManager.createPopUp(DisplayObject(Application.application),view.${typeName}.${domainClass.propertyName}.${className}RelationEditView,true)
+					editView = PopUpManager.createPopUp(DisplayObject(Application.application),view.${domainClass.propertyName}.external.${className}RelationEditView,true)
 
 					Object(editView).clickOk = editOk;
 					Object(editView).cancel = cancel;
-					Object(editView).vo = vo;
+					Object(editView).valueObject = valueObject;
 
 					PopUpManager.centerPopUp(editView);
 				}
 
 				private function showNewView():void
 				{
-					editView = PopUpManager.createPopUp(DisplayObject(Application.application),view.${typeName}.${domainClass.propertyName}.${className}RelationEditView,true)
+					editView = PopUpManager.createPopUp(DisplayObject(Application.application),view.${domainClass.propertyName}.external.${className}RelationEditView,true)
 
 					Object(editView).clickOk = newOk;
 					Object(editView).cancel = cancel;
-					Object(editView).vo = new ${className}VO;
+					Object(editView).valueObject = new ${className}VO;
 
 					PopUpManager.centerPopUp(editView);
 				}
@@ -42,14 +49,14 @@
 				{
 					PopUpManager.removePopUp(editView);
 
-					vo = Object(editView).getVO();
+					valueObject = Object(editView).getVO();
 				}
 
 				private function editOk():void
 				{
 					PopUpManager.removePopUp(editView);
 
-					vo = Object(editView).getVO();
+					valueObject = Object(editView).getVO();
 				}
 
 				private function cancel():void
@@ -59,12 +66,12 @@
 
 				private function deleteItem():void
 				{
-					vo = null;
+					valueObject = null;
 				}
 
 				public function getVO():${className}VO
 				{
-					return vo;
+					return valueObject;
 				}
 			]]>
 		</mx:Script>
@@ -75,28 +82,28 @@
 //	def properties = ""
 //	props.eachWithIndex { it, i ->
 //		if (props.length-1 > i)
-//			properties +="' ${it.name}: ' +vo.${it.name}+ "
+//			properties +="' ${it.name}: ' +valueObject.${it.name}+ "
 //		else
-//			properties +="' ${it.name}: ' +vo.${it.name}"
+//			properties +="' ${it.name}: ' +valueObject.${it.name}"
 //	}
 %>	
-	<mx:Button toolTip="{(vo) ? 'edit' : 'create'}"
-		styleName="{(vo) ? 'editButton' : 'createButton'}"
-		click="{(vo) ? showEditView() : showNewView()}"/>
+	<mx:Button toolTip="{(valueObject) ? MultipleRM.getString(MultipleRM.localePrefix,'generic.edit') : resourceManager.getString(appModel.localePrefix,'generic.create')}"
+		styleName="{(valueObject) ? 'editButton' : 'createButton'}"
+		click="{(valueObject) ? showEditView() : showNewView()}"/>
 	<mx:HBox styleName="oneTooneViewLabelContainer"
-		visible="{vo != null}"
+		visible="{valueObject != null}"
 		>
 		<%
 			props.eachWithIndex { it, i ->
 			if (props.length-1 > i)
 			{
-				println "		<mx:Label text=\"${it.name}:\"/>"
-				println "		<mx:Label text=\"{vo.${it.name}}\" styleName=\"dataText\"/>"
+				println "		<mx:Label text=\"{MultipleRM.getString(MultipleRM.localePrefix,'${domainClass.propertyName}.${it.name}')}:\"/>"
+				println "		<mx:Label text=\"{valueObject.${it.name}}\" styleName=\"dataText\"/>"
 				}
 			else
 			{
-				println "		<mx:Label text=\"${it.name}:\"/>"
-				println "		<mx:Label text=\"{vo.${it.name}}\" styleName=\"dataText\"/>"
+				println "		<mx:Label text=\"{MultipleRM.getString(MultipleRM.localePrefix,'${domainClass.propertyName}.${it.name}')}:\"/>"
+				println "		<mx:Label text=\"{valueObject.${it.name}}\" styleName=\"dataText\"/>"
 				}
 			}
 		%>

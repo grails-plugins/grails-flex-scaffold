@@ -44,7 +44,7 @@ class OneToManyBuildFormItem  extends AbstractRelationBuildFormItem
 		def sw = new StringWriter()
 		def pw = new PrintWriter(sw)
 		
-		pw.println	"		<${property.name}:${property.referencedDomainClass.shortName}OneToManyListView id=\"${getID()}\" "+
+		pw.println	"				<${property.name}:${property.referencedDomainClass.shortName}OneToManyListView id=\"${getID()}\" "+
 								"dataProvider=\"{${binding}}\"/>"
 		
 		generateViews(property)
@@ -71,13 +71,20 @@ class OneToManyBuildFormItem  extends AbstractRelationBuildFormItem
 	/**
 	 * @see #AbstractRelationBuildFormItem
 	 */
-	protected void generateViews(property)
-	{
-		super.generateViews(property)
+	protected void generateInnerViews(property)
+	{		
+		def nameDir = antProp.'view.destdir'+"/${property.referencedDomainClass.propertyName}"
 		
-		def nameDir = antProp.'view.destdir'+"/${property.domainClass.propertyName}/${property.referencedDomainClass.propertyName}"
+		if (!new File(nameDir).exists())
+			new File(nameDir).mkdir()
+		
+		nameDir = "$nameDir/external"
+		
+		if (!new File(nameDir).exists())
+			new File(nameDir).mkdir()
+			
 		def classNameDir = "${nameDir}/${property.referencedDomainClass.shortName}OneToManyListView.mxml"
-		def templateDir = resolveResources("/*"+antProp.'view.otmlistfile').toString()
+		def templateDir = FSU.resolveResources("/*"+antProp.'view.otmlistfile').toString()
 
 		if (!new File(nameDir).exists())
 			new File(nameDir).mkdir()
@@ -86,7 +93,7 @@ class OneToManyBuildFormItem  extends AbstractRelationBuildFormItem
 		println "${classNameDir} Done!"
 		
 		classNameDir = "${nameDir}/${property.referencedDomainClass.shortName}RelationEditView.mxml"
-		templateDir = resolveResources("/*"+antProp.'view.relationeditfile').toString()
+		templateDir = FSU.resolveResources("/*"+antProp.'view.relationeditfile').toString()
 		
 		defaultTemplateGenerator.generateTemplate(property.referencedDomainClass,templateDir,classNameDir,property.domainClass.propertyName)
 		println "${classNameDir} Done!"

@@ -25,7 +25,7 @@ import org.cubika.labs.scaffolding.utils.FlexScaffoldingUtils as FSU
  * @author Ezequiel Martin Apfel
  * @since  3-Feb-2009
  */
-class TextAreaBuildFormItem  extends AbstractBuildFormItem 
+class TextAreaBuildFormItem extends AbstractBuildFormItem 
 {
 	/**
 	 * Constructor
@@ -45,7 +45,7 @@ class TextAreaBuildFormItem  extends AbstractBuildFormItem
 		def sw = new StringWriter()
 		def pw = new PrintWriter(sw)
 		
-		pw.println	"		<mx:TextArea id=\"${getID()}\" text=\"{${binding}}\" width=\"217\"/>"
+		pw.println	"				<mx:TextArea id=\"${getID()}\" text=\"{${binding}}\" width=\"217\"/>"
 		
 		sw.toString()
 	}

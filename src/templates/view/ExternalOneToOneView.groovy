@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-		xmlns:cubikalabs="http://cubikalabs.cub2k.com/2009/commons"
-		verticalGap="2" verticalAlign="middle"
-		creationComplete="doInit()">
+	xmlns:cubikalabs="http://cubikalabs.cub2k.com/2009/commons"
+	verticalGap="2" verticalAlign="middle"
+	creationComplete="doInit()">
 	
 	<mx:Script>
 			<![CDATA[

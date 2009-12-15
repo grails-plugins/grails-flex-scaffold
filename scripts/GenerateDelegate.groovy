@@ -18,12 +18,14 @@ target('default': "")
 {
 	depends(validateDomainClass,generateFlexDefaultStructure,generateFlexBuilder,createFlexProperties, generateDefaults)	
 
-	generateDelegate(args.trim())
+	generateDelegate(domainClass:getDomainClass(args))
 }
 
-target(generateDelegate: "Generate Domain Delegate") 
-{
-	def domainClass = getDomainClass(args)
+//Generate Domain Delegate
+generateDelegate = 
+{ Map args = [:] ->
+	
+	def domainClass = args["domainClass"]
   
 	dftg = new DefaultFlexTemplateGenerator();
 

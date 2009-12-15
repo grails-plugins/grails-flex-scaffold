@@ -40,8 +40,8 @@ class OneToOneBuildFormItem extends AbstractRelationBuildFormItem
 		def sw = new StringWriter()
     def pw = new PrintWriter(sw)
 		
-		pw.println	"		<${property.name}:${property.referencedDomainClass.shortName}OneToOneView id=\"${getID()}\" "+
-								"vo=\"{${binding}}\"/>"
+		pw.println	"				<${property.name}:${property.referencedDomainClass.shortName}OneToOneView id=\"${getID()}\" "+
+								"valueObject=\"{${binding}}\"/>"
 		
 		generateViews(property)
 		
@@ -67,13 +67,20 @@ class OneToOneBuildFormItem extends AbstractRelationBuildFormItem
 	/**
 	 * @see #AbstractRelationBuildFormItem
 	 */
-	protected void generateViews(property)
+	protected void generateInnerViews(property)
 	{
-		super.generateViews(property)
-
-		def nameDir = antProp.'view.destdir'+"/${property.domainClass.propertyName}/${property.referencedDomainClass.propertyName}"
-		def classNameDir = "${nameDir}/${property.referencedDomainClass.shortName}OneToOneView.mxml"
-		def templateDir = resolveResources("/*"+antProp.'view.otolistfile').toString()
+		def nameDir = antProp.'view.destdir'+"/${property.referencedDomainClass.propertyName}"
+		
+		if (!new File(nameDir).exists())
+			new File(nameDir).mkdir()
+		
+		nameDir = "$nameDir/external"
+		
+		if (!new File(nameDir).exists())
+			new File(nameDir).mkdir()
+			
+		def classNameDir = "${nameDir}/${property.referencedDomainClass.shortName}OneToOneView.mxml"		
+		def templateDir = FSU.resolveResources("/*"+antProp.'view.otolistfile').toString()
 
 		if (!new File(nameDir).exists())
 			new File(nameDir).mkdir()
@@ -82,7 +89,7 @@ class OneToOneBuildFormItem extends AbstractRelationBuildFormItem
 		println "${classNameDir} Done!"
 		
 		classNameDir = "${nameDir}/${property.referencedDomainClass.shortName}RelationEditView.mxml"
-		templateDir = resolveResources("/*"+antProp.'view.relationeditfile').toString()
+		templateDir = FSU.resolveResources("/*"+antProp.'view.relationeditfile').toString()
 		
 		defaultTemplateGenerator.generateTemplate(property.referencedDomainClass,templateDir,classNameDir,property.domainClass.propertyName)
 		println "${classNameDir} Done!"

@@ -26,4 +26,5 @@ import java.lang.annotation.*;
 public @interface FlexScaffoldProperty
 {
 	String labelField() default "label";
+	String generate() default "false";
 }

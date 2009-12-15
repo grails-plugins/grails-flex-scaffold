@@ -47,7 +47,7 @@ class CheckBoxBuildFormItem extends AbstractBuildFormItem
 		def sw = new StringWriter()
 		def pw = new PrintWriter(sw)
 
-		pw.println	"		<mx:CheckBox id=\"${getID()}\" selected=\"{${binding}}\"/>"
+		pw.println	"				<mx:CheckBox id=\"${getID()}\" selected=\"{${binding}}\"/>"
 
 		sw.toString()
 	}

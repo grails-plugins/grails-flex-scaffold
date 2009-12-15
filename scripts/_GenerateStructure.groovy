@@ -7,8 +7,6 @@ def antProp = Ant.project.properties
 
 generateFlexDefaultStructure =
 { Map args = [:] ->
-	if (new File(antProp.'vo.destdir').exists())
-		return
 	
 	if (!new File(antProp.'flex.basedir').exists())
 		Ant.mkdir(dir:antProp.'flex.basedir')
@@ -31,7 +29,7 @@ generateFlexDefaultStructure =
 	if (!new File(antProp.'event.destdir').exists())
 			Ant.mkdir(dir:antProp.'event.destdir')
 	
-	if (!new File(antProp.'css.destdir').exists())
+	if (!new File(antProp.'css.destdir').exists() || !new File(antProp.'css.file').exists())
 	{
 			Ant.mkdir(dir:antProp.'css.destdir')
 			Ant.copy(file: "${flexScaffoldPluginDir}"+antProp.'css.styleselected', tofile: antProp.'css.file', 
@@ -42,7 +40,10 @@ generateFlexDefaultStructure =
 			Ant.mkdir(dir:antProp.'controller.destdir')				
 		
 	if (!new File(antProp.'command.destdir').exists())
+	{
+			Ant.mkdir(dir:antProp.'command.destdir'+"/gfs")
 			Ant.mkdir(dir:antProp.'command.destdir')
+	}
 			
 	if (!new File(antProp.'assets.destdir').exists())
 	{

@@ -1,5 +1,3 @@
-package org.cubika.labs.scaffolding.utils
-
 ////////////////////////////////////////////////////////////////////
 // Copyright 2009 the original author or authors.
 //
@@ -15,13 +13,18 @@ package org.cubika.labs.scaffolding.utils
 // See the License for the specific language governing permissions and
 // limitations under the License.
 ////////////////////////////////////////////////////////////////////
+package org.cubika.labs.scaffolding.utils
 
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClassProperty
 import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass
 import org.codehaus.groovy.grails.scaffolding.DomainClassPropertyComparator
 import org.codehaus.groovy.grails.orm.hibernate.support.ClosureEventTriggeringInterceptor as Events
+import grails.util.BuildSettingsHolder
+
 import org.cubika.labs.scaffolding.form.FormItemConstants as FIC
 import org.cubika.labs.scaffolding.utils.ConstraintValueUtils as CVU
+import org.codehaus.groovy.grails.commons.GrailsDomainClass
 
 /**
  * Utils used in flex templates  
@@ -35,6 +38,10 @@ class FlexScaffoldingUtils
 	 */
 	static private Map typesAS3Map = new HashMap()
 	
+	static private def resolver = new PathMatchingResourcePatternResolver()
+
+    static public def grailsApplication
+	
 	static {
 		
 		//TODO: Add More types
@@ -46,7 +53,7 @@ class FlexScaffoldingUtils
 		typesAS3Map.put(Date.class,['class':"Date",'import':""]);
 		typesAS3Map.put(String.class,['class':"String",'import':"",'cast':"String"]);
 		typesAS3Map.put(Set.class,['class':"ArrayCollection",'import':"import mx.collections.ArrayCollection"]);
-	  typesAS3Map.put(List.class,['class':"ArrayCollection",'import':"import mx.collections.ArrayCollection"]);
+        typesAS3Map.put(List.class,['class':"ArrayCollection",'import':"import mx.collections.ArrayCollection"]);
 
 	}
 	
@@ -81,7 +88,7 @@ class FlexScaffoldingUtils
 		
 		//otherwise
 		if (CVU.display(property))
-			return "${property.type.propertyName}${CVU.defaultValue(property)}"
+        return "${property.type.propertyName}${CVU.defaultValue(property)}"
 	}
 	
 	/**
@@ -125,17 +132,57 @@ class FlexScaffoldingUtils
 	 */
 	static String getDataGridColumn(DefaultGrailsDomainClassProperty property)
 	{
-		def sw = new StringWriter()
-		def pw = new PrintWriter(sw)
+		String result
+		def sw
+		def pw
 		
-		if (!property.isOneToOne() && !property.isOneToMany() && !property.isManyToOne())
+		if (!property.isOneToOne() && !property.isOneToMany() && !property.isManyToOne() && CVU.display(property))
+		{
+			sw = new StringWriter()
+			pw = new PrintWriter(sw)
+			
 			if (property.type == Date.class)
-				pw.println "<mx:DataGridColumn dataField=\"${property.name}\" headerText=\"${property.naturalName}\""+
-				" labelFunction=\"${property.name}Formatter\"/>"
-			else
-				pw.println "<mx:DataGridColumn dataField=\"${property.name}\" headerText=\"${property.naturalName}\" />"
+			{
+				pw.println "<cubikalabs:CBKDateFormatterDataGridColumn dataField=\"${property.name}\" "+
+				"headerText=\"{MultipleRM.getString(MultipleRM.localePrefix,'${property.domainClass.propertyName}.${property.name}')}\" />"
+
+				return sw.toString()
+			}
+			
+			if (CVU.richtext(property))
+			{
+				pw.println "<mx:DataGridColumn dataField=\"${property.name}\" "+
+					"headerText=\"{MultipleRM.getString(MultipleRM.localePrefix,'${property.domainClass.propertyName}.${property.name}')}\">\n"+
+					"					<mx:itemRenderer>\n"+
+					"						<mx:Component>\n"+
+					"							<mx:Label htmlText=\"{data.${property.name}}\"/>\n"+
+					"						</mx:Component>\n"+
+					"					</mx:itemRenderer>\n"+
+					"</mx:DataGridColumn>"
+				return sw.toString()
+			}
+
+            if (CVU.password(property))
+			{
+				pw.println "<mx:DataGridColumn dataField=\"${property.name}\" "+
+					"headerText=\"{MultipleRM.getString(MultipleRM.localePrefix,'${property.domainClass.propertyName}.${property.name}')}\">\n"+
+					"					<mx:itemRenderer>\n"+
+					"						<mx:Component>\n"+
+					"							<mx:TextInput displayAsPassword=\"true\" text=\"{data.${property.name}}\" enabled=\"false\" borderThickness=\"0\" borderStyle=\"none\" backgroundAlpha=\"0\"/>"+
+					"						</mx:Component>\n"+
+					"					</mx:itemRenderer>\n"+
+					"</mx:DataGridColumn>"
+				return sw.toString()
+			}
+
+
+			pw.println "<mx:DataGridColumn dataField=\"${property.name}\" "+
+			"headerText=\"{MultipleRM.getString(MultipleRM.localePrefix,'${property.domainClass.propertyName}.${property.name}')}\" />"
+			
+			result = sw.toString()
+		}
 		
-		sw.toString()
+		return result
 	}
 	
 	/**
@@ -153,14 +200,21 @@ class FlexScaffoldingUtils
 	 * @parm	domainClass - DefaultGrailsDomainClass
 	 * @return DefaultGrailsDomainClassProperty[] with id and version
 	 */
-	static DefaultGrailsDomainClassProperty[] getPropertiesWithIdentity(DefaultGrailsDomainClass domainClass)
+	static DefaultGrailsDomainClassProperty[] getPropertiesWithIdentity(DefaultGrailsDomainClass domainClass, Boolean inherited=true)
 	{
 		def excludedProps = [Events.ONLOAD_EVENT,
-	                       Events.BEFORE_DELETE_EVENT,
-	                       Events.BEFORE_INSERT_EVENT,
-	                       Events.BEFORE_UPDATE_EVENT]
+            Events.BEFORE_DELETE_EVENT,
+            Events.BEFORE_INSERT_EVENT,
+            Events.BEFORE_UPDATE_EVENT]
+                       
+        def properties = domainClass.properties
 
-		domainClass.properties.findAll { !excludedProps.contains(it.name)}
+		if (inherited)
+        properties = properties.findAll { !excludedProps.contains(it.name)}
+		else
+        properties = properties.findAll { !excludedProps.contains(it.name) && !it.inherited}
+			
+		properties
 	}
 	
 	/**
@@ -169,14 +223,19 @@ class FlexScaffoldingUtils
 	 * @param domainClass 		- DefaultGrailsDomainClass
 	 * @return DefaultGrailsDomainClassProperty[] without id and version
 	 */
-	static DefaultGrailsDomainClassProperty[] getPropertiesWithoutIdentity(DefaultGrailsDomainClass domainClass, order=false)
+	static DefaultGrailsDomainClassProperty[] getPropertiesWithoutIdentity(DefaultGrailsDomainClass domainClass, Boolean order=false, inherited=true)
 	{
 		def excludedProps = ['id', 'version',Events.ONLOAD_EVENT,
-	                       Events.BEFORE_DELETE_EVENT,
-	                       Events.BEFORE_INSERT_EVENT,
-	                       Events.BEFORE_UPDATE_EVENT]
-												
-		def properties = domainClass.properties.findAll { !excludedProps.contains(it.name)}
+            Events.BEFORE_DELETE_EVENT,
+            Events.BEFORE_INSERT_EVENT,
+            Events.BEFORE_UPDATE_EVENT]
+		
+		def properties = domainClass.properties
+		
+		if (inherited)
+        properties = properties.findAll { !excludedProps.contains(it.name)}
+		else
+        properties = properties.findAll { !excludedProps.contains(it.name) && !it.inherited}
 		
 		if (order)
 		{
@@ -198,9 +257,56 @@ class FlexScaffoldingUtils
 		properties.each
 		{
 			if ((it.isOneToMany() || it.isOneToOne() || it.isManyToOne()) && CVU.display(it))
-				ns += "\nxmlns:${it.name}=\"view.${it.domainClass.propertyName}.${it.referencedDomainClass.propertyName}.*\" "
+            ns += "\nxmlns:${it.name}=\"view.${it.referencedDomainClass.propertyName}.external.*\" "
 		}
 		
 		ns
 	}
+	
+	
+	/**
+	 * Resolve path for pluging dir  
+	 * @param pattern - String with partil path 
+	 * @return a concret path
+	 */
+	static def resolveResources(pattern)
+	{
+		try 
+		{
+			def path
+			//if is a localplugin
+			def dir = resolver.getResources("file:${BuildSettingsHolder.settings?.projectPluginsDir.canonicalFile}${pattern}")
+			
+			if (dir)	
+            path = dir.file[0]
+			
+			if (!path)
+			{
+				//if is a globalplugin
+				if (BuildSettingsHolder.settings?.globalPluginsDir.exists())
+                dir = resolver.getResources("file:${BuildSettingsHolder.settings?.globalPluginsDir.canonicalFile}${pattern}")
+				
+				if (dir)	
+                path = dir.file[0]
+			}
+				
+			path
+    	}
+    	catch (Throwable e) 
+        {
+            throw new Exception("${BuildSettingsHolder.settings?.projectPluginsDir.canonicalFile}${pattern} Not Found $e")
+        }
+  	}
+
+    static String getSuperClassName(domainClass)
+    {
+
+        Class superClass = domainClass.getClazz().getSuperclass()
+
+        if (!superClass.equals(Object.class) && !superClass.equals(GroovyObject.class))
+        {
+            GrailsDomainClass gdc = (GrailsDomainClass) grailsApplication.getDomainClass(superClass.getName())
+            return gdc.propertyName
+        }
+    }
 }

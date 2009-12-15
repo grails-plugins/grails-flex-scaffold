@@ -1,5 +1,6 @@
 import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
+import org.cubika.labs.scaffolding.utils.ConstraintValueUtils as CVU
 
 grailsHome = Ant.project.properties."environment.GRAILS_HOME"
 
@@ -19,14 +20,15 @@ target('default': "")
 
 	depends( validateDomainClass, generateFlexDefaultStructure, generateFlexBuilder, 				createFlexProperties, generateDefaults )
 
-	generateCRUDCommands(args.trim())
+	generateCRUDCommands(domainClass:getDomainClass(args))
 
 }
 
-target(generateCRUDCommands: "Generate CRUD Commands") 
-{
+//Generate CRUD Commands
+generateCRUDCommands =
+{ Map args = [:] ->
 	
-	def domainClass = getDomainClass(args)
+	def domainClass = args["domainClass"]
 
   dftg = new DefaultFlexTemplateGenerator();
 
@@ -54,6 +56,10 @@ target(generateCRUDCommands: "Generate CRUD Commands")
 	templateFile = "${flexScaffoldPluginDir}"+antProp.'command.paginationlistfile'
 	generateCommand(domainClass,templateFile,classNameFile)
 	
+	classNameFile = "${nameDir}/${domainClass.shortName}ExternalGetPaginationListCommand.as"
+	templateFile = "${flexScaffoldPluginDir}"+antProp.'command.paginationlistfile'
+	generateCommand(domainClass,templateFile,classNameFile,"External")
+	
 	classNameFile = "${nameDir}/${domainClass.shortName}SaveOrUpdateCommand.as"
 	templateFile = "${flexScaffoldPluginDir}"+antProp.'command.saveorupdatefile'
 	generateCommand(domainClass,templateFile,classNameFile)
@@ -61,10 +67,25 @@ target(generateCRUDCommands: "Generate CRUD Commands")
 	classNameFile = "${nameDir}/${domainClass.shortName}SelectCommand.as"
 	templateFile = "${flexScaffoldPluginDir}"+antProp.'command.selectfile'
 	generateCommand(domainClass,templateFile,classNameFile)
+
+    classNameFile = "${nameDir}/${domainClass.shortName}CancelCommand.as"
+	templateFile = "${flexScaffoldPluginDir}"+antProp.'command.cancelfile'
+	generateCommand(domainClass,templateFile,classNameFile)
+	
+	//generate Command Actions
+	def actions = CVU.actions(domainClass)
+	
+	actions.each
+	{
+		classNameFile = "${nameDir}/${domainClass.shortName}${it}Command.as"
+		templateFile = "${flexScaffoldPluginDir}"+antProp.'command.actioncommand'
+		dftg.generateTemplate(domainClass,templateFile,classNameFile,it)
+	}
+	//end generate Command Actions
 }
 
-private void generateCommand(domainClass,templateFile,classNameFile)
+private void generateCommand(domainClass,templateFile,classNameFile,typeName="")
 {	
-	dftg.generateTemplate(domainClass,templateFile,classNameFile)
+	dftg.generateTemplate(domainClass,templateFile,classNameFile,typeName)
 	println "${classNameFile} Done!"
 }

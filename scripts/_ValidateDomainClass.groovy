@@ -17,7 +17,8 @@
  *
  */
 
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
+import grails.util.GrailsNameUtils as GNU
+import org.cubika.labs.scaffolding.utils.FlexScaffoldingUtils as FSU
 
 grailsHome = Ant.project.properties."environment.GRAILS_HOME"
 
@@ -25,29 +26,43 @@ Ant.property(file:"${flexScaffoldPluginDir}/scripts/flexScaffold.properties")
 
 antProp = Ant.project.properties
 
-includeTargets << grailsScript ( "Init" )
-includeTargets << grailsScript ( "Bootstrap" )
+includeTargets << grailsScript("_GrailsInit")
+includeTargets << grailsScript("_GrailsCreateArtifacts")
+includeTargets << grailsScript("_GrailsBootstrap")
 
 target ('validateDomainClass': "Validate domain class name")
 {
-	depends( checkVersion, packageApp )
-	
-	typeName = "Domain Class"
-	promptForName()
-		
+	depends(checkVersion, parseArguments, packageApp)
+    promptForName(type: "Domain Class")
+
 	rootLoader.addURL(classesDir.toURI().toURL())
 	loadApp()
-	if (!getDomainClass(args.trim()))
+    //Adds Grails Application to FlexScaffoldUtils
+    FSU.grailsApplication = grailsApp
+  try 
 	{
-		println "Domain Class not exist!"
-		exit(1)
-	}		
+      def name = argsMap["params"][0]
+      if (!name || name == "*") 
+			{
+          return
+      }
+      else if (name && !getDomainClass(name))
+			{
+				println "Domain Class not exist!"
+				exit(1)
+			}
+  }
+  catch(Exception e) 
+	{
+      logError("Error running validate domain class", e)
+      exit(1)
+  }	
 }
 
 // @return DomainClass representation if exist otherwise null
 getDomainClass = 
 {String name ->
-  name = name.indexOf('.') > -1 ? name : GCU.getClassNameRepresentation(name)	
+  	name = name.indexOf('.') > -1 ? name : GNU.getClassNameRepresentation(name)	
 	def domainClass = grailsApp.getDomainClass(name)
 	return domainClass
 }

@@ -26,22 +26,22 @@ import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 import org.codehaus.groovy.grails.commons.ApplicationHolder;
 
 /**
- * This class is used by plugin scripts to convert templates into actionscript archives, 
- * which are compiled when "grails flex-tasks" command is executed. 
+ * This class is used by plugin scripts to convert templates into actionscript archives,
+ * which are compiled when "grails flex-tasks" command is executed.
  * Gives support for relationship except many-to-many
- * 
+ *
  * @author Ezequiel Martin Apfel
  * @since 01-Feb-2009
  */
-class DefaultFlexTemplateGenerator 
+class DefaultFlexTemplateGenerator
 {
-	
+
 	//static final Log LOG = LogFactory.getLog(DefaultTemplateTemplateGenerator.class);
 	def engine = new SimpleTemplateEngine()
-	
+	def ant = new AntBuilder()
 	/**
-	 * Create Flex templates 
-	 * 
+	 * Create Flex templates
+	 *
 	 * @param domainClass
 	 * @param templateFile			Template file to be used
 	 * @param filePath				Path for result as file
@@ -57,11 +57,11 @@ class DefaultFlexTemplateGenerator
 		def t = engine.createTemplate(templateText)
 		def out = new File(filePath)
 		def w = out.newWriter()
-		
+
 		t.make(binding).writeTo(w)
 		w.flush()
 		w.close()
-		
+
 		//The first time throw IllegalAccessError
 		//out.withWriter {w ->
 		//    t.make(binding).writeTo(w)
@@ -70,8 +70,8 @@ class DefaultFlexTemplateGenerator
 	}
 
 	/**
-	 * Create Flex relational templates 
-	 * 
+	 * Create Flex relational templates
+	 *
 	 * @param domainClass
 	 * @param templateFile			Template file to be used
 	 * @param filePath				Path for result as file
@@ -86,12 +86,35 @@ class DefaultFlexTemplateGenerator
 										typeName:typeName]
 
 		def t = engine.createTemplate(templateText)
-		
+
 		def out = new File(filePath)
 		def w = out.newWriter()
-			
-		t.make(binding).writeTo(w)			
+
+		t.make(binding).writeTo(w)
 		w.flush()
 		w.close()
 	}
+	
+	/**
+	 * Create a Simple Templates
+	 */
+	void generateSimpleTemplate(templateFile, filePath, artifactName,pkg,className)
+	{
+		def templateText = new File(templateFile).getText()
+		
+		def binding = [	artifactName: artifactName,
+	                  className: className,
+										pkg: pkg
+									]
+
+		def t = engine.createTemplate(templateText)
+
+		def out = new File(filePath)
+		def w = out.newWriter()
+
+		t.make(binding).writeTo(w)
+		w.flush()
+		w.close()
+	}
+	
 }

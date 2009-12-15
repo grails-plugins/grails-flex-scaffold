@@ -23,7 +23,7 @@ package event
 
 	/**
 	 * 
-	 * @author Ezequiel Apfel
+	 * @author Ezequiel 'pelado' Apfel
 	 * @since 23-Feb-2009
 	 */	
 	public class AlternativeNavigationEvent extends CairngormEvent
