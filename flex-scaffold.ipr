@@ -253,7 +253,7 @@
   </component>
   <component name="ProjectFileVersion" converted="true" />
   <component name="ProjectKey">
-    <option name="state" value="project:///Users/Ezequiel/projects/CUBIKA/I+D/GFS/0.2.1-beta/flex-scaffold/flex-scaffold.ipr" />
+    <option name="state" value="https://svn.codehaus.org/grails-plugins/grails-flex-scaffold/trunk/flex-scaffold.ipr" />
   </component>
   <component name="ProjectModuleManager">
     <modules>
@@ -283,21 +283,6 @@
         <entry key="$PROJECT_DIR$">
           <value>
             <SvnBranchConfiguration>
-              <option name="branchMap">
-                <map>
-                  <entry key="https://svn.codehaus.org/gfs/trunk/grails-flex-scaffold/tags">
-                    <value>
-                      <list>
-                        <SvnBranchItem>
-                          <option name="creationDateMillis" value="1243815704964" />
-                          <option name="revision" value="124" />
-                          <option name="url" value="https://svn.codehaus.org/gfs/trunk/grails-flex-scaffold/tags/RELEASE_0_2-beta" />
-                        </SvnBranchItem>
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
               <option name="branchUrls">
                 <list>
                   <option value="https://svn.codehaus.org/gfs/trunk/grails-flex-scaffold/tags" />
