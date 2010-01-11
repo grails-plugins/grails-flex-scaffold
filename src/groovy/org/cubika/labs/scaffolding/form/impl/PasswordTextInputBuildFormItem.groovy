@@ -78,12 +78,20 @@ public class PasswordTextInputBuildFormItem extends AbstractBuildFormItem {
     sw.toString()
   }
 
+  /**
+   * Return id.value for formItem
+   */
+  String getFormAttr()
+  {
+      "${getID()}"
+  }
+
   public String getID() {
-    "SHA256.hashToBase64(txt${FSU.capitalize(property.name)}"
+    "txt${FSU.capitalize(property.name)}.text != _vo.${property.name} ? SHA256.hashToBase64(txt${FSU.capitalize(property.name)}.text) : _vo.${property.name}"
   }
 
   public String value() {
-    "text)"
+    ""
   }
 
 }
