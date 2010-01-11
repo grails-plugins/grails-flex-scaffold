@@ -22,9 +22,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.metadata.Attributes;
 import org.springframework.security.SecurityConfig;
+import org.springframework.security.intercept.web.FilterInvocationDefinitionSource;
 import org.springframework.security.annotation.Secured;
+import org.apache.commons.attributes.Attributes;
 
 /**
  * Re-implementation of Acegi's {@link SecurityAnnotationAttributes} as a temporary
@@ -32,7 +33,7 @@ import org.springframework.security.annotation.Secured;
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
-public class SecurityAnnotationAttributes implements Attributes {
+public class SecurityAnnotationAttributes {
 
 	/**
 	 * {@inheritDoc}
