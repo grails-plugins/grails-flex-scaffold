@@ -11,7 +11,7 @@ import org.springframework.security.intercept.method.MethodDefinitionAttributes
 
 class FlexScaffoldGrailsPlugin {
     // the plugin version
-    def version = "0.2.2"
+    def version = "0.2.3"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.1 > *"
     // the other plugins this plugin depends on
@@ -146,21 +146,21 @@ class FlexScaffoldGrailsPlugin {
 
         println "Loading GFS Security"
 
-        serviceSecureAnnotation(SecurityAnnotationAttributes)
+        //serviceSecureAnnotation(SecurityAnnotationAttributes)
 
-        serviceSecureAnnotationODS(MethodDefinitionAttributes) {
-            attributes = serviceSecureAnnotation
-        }
+        //serviceSecureAnnotationODS(MethodDefinitionAttributes) {
+        //    attributes = serviceSecureAnnotation
+        //}
 
         //Security Interceptor
-        securityInteceptor(GFSMethodSecurityInterceptor) {
+        //securityInteceptor(GFSMethodSecurityInterceptor) {
 
-          validateConfigAttributes = false
-          authenticationManager = ref('authenticationManagerAnonymous')
-          accessDecisionManager = ref('accessDecisionManager')
-          objectDefinitionSource = serviceSecureAnnotationODS
-          throwException = true
-        }
+          //validateConfigAttributes = false
+          //authenticationManager = ref('authenticationManagerAnonymous')
+          //accessDecisionManager = ref('accessDecisionManager')
+          //objectDefinitionSource = serviceSecureAnnotationODS
+          //throwException = true
+        //}
       }
       else {
 
