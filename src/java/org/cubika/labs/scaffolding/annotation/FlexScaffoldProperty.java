@@ -1,5 +1,5 @@
 /**
- * Copyright 2009 the original author or authors.
+ * Copyright 2009-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  */
 package org.cubika.labs.scaffolding.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Ezequiel Martin Apfel
- * @since 24-Feb-2009
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface FlexScaffoldProperty
-{
+public @interface FlexScaffoldProperty {
 	String labelField() default "label";
 	String generate() default "false";
 }

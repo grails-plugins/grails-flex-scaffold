@@ -1,29 +1,27 @@
+/**
+ * Copyright 2009-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.cubika.labs.scaffolding.form
 
-////////////////////////////////////////////////////////////////////
-// Copyright 2009 the original author or authors.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-////////////////////////////////////////////////////////////////////
- 
 /**
  * Declares constants for widgets and constraints
  *
  * @author Ezequiel Martin Apfel
- * @since  3-Feb-2009
  */
-class FormItemConstants 
-{	
+class FormItemConstants {
+
 	//widgets
 	static final String TEXT_INPUT = "textinput"
 	static final String TEXT_AREA = "textarea"
@@ -36,8 +34,8 @@ class FormItemConstants
 	static final String IMAGE_UPLOAD = "imageupload"
 	static final String FILE_UPLOAD = "fileupload"
 	static final String SNAP_UPLOAD = "snapshotupload"
-    static final String PASSWORD = "password"
-	
+	static final String PASSWORD = "password"
+
 	//constraints
 	static final String IN_PLACE = "inPlace"
 }
