@@ -1,59 +1,43 @@
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
-import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
+/**
+ * Copyright 2009-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Ant.property(file:"${flexScaffoldPluginDir}/scripts/flexScaffold.properties")
+generateFlexDefaultStructure = { Map args = [:] ->
 
-def antProp = Ant.project.properties
+	ant.mkdir dir: antProperty('flex.basedir')
+	ant.mkdir dir: antProperty('vo.destdir')
+	ant.mkdir dir: antProperty('view.destdir')
+	ant.mkdir dir: antProperty('service.destdir')
+	ant.mkdir dir: antProperty('model.destdir')
+	ant.mkdir dir: antProperty('lib.destdir')
+	ant.mkdir dir: antProperty('event.destdir')
 
-generateFlexDefaultStructure =
-{ Map args = [:] ->
-	
-	if (!new File(antProp.'flex.basedir').exists())
-		Ant.mkdir(dir:antProp.'flex.basedir')
-		
-	if (!new File(antProp.'vo.destdir').exists())
-			Ant.mkdir(dir:antProp.'vo.destdir')
-	
-	if (!new File(antProp.'view.destdir').exists())
-			Ant.mkdir(dir:antProp.'view.destdir')
-	
-	if (!new File(antProp.'service.destdir').exists())
-		  Ant.mkdir(dir:antProp.'service.destdir')
-		
-	if (!new File(antProp.'model.destdir').exists())
-			Ant.mkdir(dir:antProp.'model.destdir')
-	
-	if (!new File(antProp.'lib.destdir').exists())
-			Ant.mkdir(dir:antProp.'lib.destdir')
-	
-	if (!new File(antProp.'event.destdir').exists())
-			Ant.mkdir(dir:antProp.'event.destdir')
-	
-	if (!new File(antProp.'css.destdir').exists() || !new File(antProp.'css.file').exists())
-	{
-			Ant.mkdir(dir:antProp.'css.destdir')
-			Ant.copy(file: "${flexScaffoldPluginDir}"+antProp.'css.styleselected', tofile: antProp.'css.file', 
-							 overwrite: true)
-	}
-	
-	if (!new File(antProp.'controller.destdir').exists())
-			Ant.mkdir(dir:antProp.'controller.destdir')				
-		
-	if (!new File(antProp.'command.destdir').exists())
-	{
-			Ant.mkdir(dir:antProp.'command.destdir'+"/gfs")
-			Ant.mkdir(dir:antProp.'command.destdir')
-	}
-			
-	if (!new File(antProp.'assets.destdir').exists())
-	{
-			Ant.mkdir(dir:antProp.'assets.destdir')
-			
-			Ant.copy(toDir:antProp.'assets.destdir'){
-				fileset(dir:"${flexScaffoldPluginDir}"+antProp.'css.assetsselected')
-				{
-					include(name:'**')
-				}
-			}
+	ant.mkdir dir: antProperty('css.destdir')
+	ant.copy file: pluginDirPath + antProperty('css.styleselected'),
+	         tofile: antProperty('css.file'), verbose: true
+
+	ant.mkdir dir: antProperty('controller.destdir')
+
+	ant.mkdir dir: antProperty('command.destdir') + "/gfs"
+	ant.mkdir dir: antProperty('command.destdir')
+
+	if (!new File(antProperty('assets.destdir')).exists()) {
+		ant.mkdir dir: antProperty('assets.destdir')
+
+		ant.copy(toDir: antProperty('assets.destdir')) {
+			fileset dir: pluginDirPath + antProperty('css.assetsselected')
+		}
 	}
 }

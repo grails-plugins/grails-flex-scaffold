@@ -1,5 +1,5 @@
 /**
- * Copyright 2009 the original author or authors.
+ * Copyright 2009-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,139 +12,122 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @author Ezequiel Martin Apfel
- * @since 24-Feb-2009
  */
 
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
+/**
+ * @author Ezequiel Martin Apfel
+ */
 
-grailsHome = Ant.project.properties."environment.GRAILS_HOME"
-
-Ant.property(file:"${flexScaffoldPluginDir}/scripts/flexScaffold.properties")
-
-def antProp = Ant.project.properties
-
-generateDefaults =
-{ Map args = [:] ->
-	
-  generateNavigation()
-  generateLocales()
-  generateBusinessDelegate()
-  generateController()
-  generateLogin()
+generateDefaults = { Map args = [:] ->
+	generateNavigation()
+	generateLocales()
+	generateBusinessDelegate()
+	generateController()
+	generateLogin()
 }
 
-void generateNavigation()
-{
-  def nameDir = antProp.'event.destdir'
-  def classNameDir = "${nameDir}/DefaultNavigationEvent.as";
-  def templateDir = "${flexScaffoldPluginDir}"+antProp.'event.defaultnavigationfile'
+void generateNavigation() {
+	String nameDir = antProperty('event.destdir')
+	String className = "$nameDir/DefaultNavigationEvent.as"
+	String template = pluginDirPath + antProperty('event.defaultnavigationfile')
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 
-  nameDir = antProp.'command.destdir'
-  classNameDir = "${nameDir}/DefaultNavigationCommand.as";
-  templateDir = "${flexScaffoldPluginDir}"+antProp.'command.defaultnavigationfile'
+	nameDir = antProperty('command.destdir')
+	className = "$nameDir/DefaultNavigationCommand.as"
+	template = pluginDirPath + antProperty('command.defaultnavigationfile')
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 
-  nameDir = antProp.'event.destdir'
-  classNameDir = "${nameDir}/AlternativeNavigationEvent.as";
-  templateDir = "${flexScaffoldPluginDir}"+antProp.'event.alternatenavigationfile'
+	nameDir = antProperty('event.destdir')
+	className = "$nameDir/AlternativeNavigationEvent.as"
+	template = pluginDirPath + antProperty('event.alternatenavigationfile')
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 
-  nameDir = antProp.'command.destdir'
-  classNameDir = "${nameDir}/AlternativeNavigationCommand.as";
-  templateDir = "${flexScaffoldPluginDir}"+antProp.'command.alternatenavigationfile'
+	nameDir = antProperty('command.destdir')
+	className = "$nameDir/AlternativeNavigationCommand.as"
+	template = pluginDirPath + antProperty('command.alternatenavigationfile')
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 
-  nameDir = antProp.'command.destdir'
+	nameDir = antProperty('command.destdir')
+	ant.mkdir dir: "$nameDir/gfs"
 
-  if (!new File("${nameDir}/gfs").exists())
-      Ant.mkdir(dir:"${nameDir}/gfs")
+	className = "$nameDir/gfs/AbstractNavigationCommand.as"
+	template = pluginDirPath + antProperty('command.abstractnavigationfile')
 
-  classNameDir = "${nameDir}/gfs/AbstractNavigationCommand.as";
-  templateDir = "${flexScaffoldPluginDir}"+antProp.'command.abstractnavigationfile'
+	ant.copy file: template, tofile: className
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-
-  println "${classNameDir} Done!"
+	println "$className Done!"
 }
 
-void generateLocales()
-{
-  def nameDir = antProp.'event.destdir'
-  def classNameDir = "${nameDir}/LocaleEvent.as";
-  def templateDir = "${flexScaffoldPluginDir}"+antProp.'event.localefile'
+void generateLocales() {
+	String nameDir = antProperty('event.destdir')
+	String className = "$nameDir/LocaleEvent.as"
+	String template = pluginDirPath + antProperty('event.localefile')
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 
-  nameDir = antProp.'command.destdir'
-  classNameDir = "${nameDir}/LocaleCommand.as";
-  templateDir = "${flexScaffoldPluginDir}"+antProp.'command.localefile'
+	nameDir = antProperty('command.destdir')
+	className = "$nameDir/LocaleCommand.as"
+	template = pluginDirPath + antProperty('command.localefile')
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 }
 
-void generateBusinessDelegate()
-{
-  def nameDir = antProp.'service.destdir'
-  def classNameDir = "${nameDir}/BusinessDelegate.as";
-  def templateDir = "${flexScaffoldPluginDir}"+antProp.'delegate.businessfile'
+void generateBusinessDelegate() {
+	String nameDir = antProperty('service.destdir')
+	String className = "$nameDir/BusinessDelegate.as"
 
-  if (new File(classNameDir).exists())
-      return
+	if (new File(className).exists()) {
+		return
+	}
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	String template = pluginDirPath + antProperty('delegate.businessfile')
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 }
 
-void generateController()
-{
-  def nameDir = antProp.'controller.destdir'
-  def classNameDir = "${nameDir}/ApplicationController.as";
-  def templateDir = "${flexScaffoldPluginDir}"+antProp.'controller.applicationfile'
+void generateController() {
+	String nameDir = antProperty('controller.destdir')
+	String className = "$nameDir/ApplicationController.as"
+	String template = pluginDirPath + antProperty('controller.applicationfile')
 
-  if (new File(classNameDir).exists())
-      return
+	if (new File(className).exists()) {
+		return
+	}
 
-  Ant.copy(file:templateDir, tofile:classNameDir)
-  println "${classNameDir} Done!"
+	ant.copy file: template, tofile: className
+	println "$className Done!"
 }
 
-void generateLogin()
-{
-  //Copy LoginEvent
-  def nameDir = antProp.'event.destdir'
-  def classNameDir = "${nameDir}/gfs/LoginEvent.as";
-  def templateDir = "${flexScaffoldPluginDir}"+antProp.'event.login'
+void generateLogin() {
+	//Copy LoginEvent
+	String nameDir = antProperty('event.destdir')
+	String className = "$nameDir/gfs/LoginEvent.as"
+	String template = pluginDirPath + antProperty('event.login')
 
-  if (!new File("${nameDir}/gfs").exists())
-		Ant.mkdir(dir:"${nameDir}/gfs")
+	ant.mkdir dir: "$nameDir/gfs"
 
-  if (!new File(classNameDir).exists()){
+	if (!new File(className).exists()) {
+		ant.copy file: template, tofile: className
+		println "$className Done!"
+	}
 
-    Ant.copy(file:templateDir, tofile:classNameDir)
-    println "${classNameDir} Done!"
-  }
+	//Copy LoginCommand
+	nameDir = antProperty('command.destdir')
+	className = "$nameDir/gfs/LoginCommand.as"
+	template = pluginDirPath + antProperty('command.login')
 
-  //Copy LoginCommand
-  nameDir = antProp.'command.destdir'
-  classNameDir = "${nameDir}/gfs/LoginCommand.as";
-  templateDir = "${flexScaffoldPluginDir}"+antProp.'command.login'
-
-  if (!new File(classNameDir).exists()){
-
-    Ant.copy(file:templateDir, tofile:classNameDir)
-    println "${classNameDir} Done!"
-  }
+	if (!new File(className).exists()) {
+		ant.copy file: template, tofile: className
+		println "$className Done!"
+	}
 }

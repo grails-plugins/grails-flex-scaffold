@@ -1,98 +1,91 @@
-import org.cubika.labs.scaffolding.utils.ConstraintValueUtils as CVU
-import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
-import org.codehaus.groovy.grails.commons.GrailsDomainClass
+/**
+ * Copyright 2009-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-grailsHome = Ant.project.properties."environment.GRAILS_HOME"
+includeTargets << new File("$flexScaffoldPluginDir/scripts/_FlexScaffoldCommon.groovy")
 
-Ant.property(file:"${flexScaffoldPluginDir}/scripts/flexScaffold.properties")
+target(generateVo: 'Create Value Object') {
+	depends(generateCommon)
 
-antProp = Ant.project.properties
-
-//Private scripts
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_CreateFlexProperties.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateDefaults.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateEclipse.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateStructure.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_ValidateDomainClass.groovy" )
-
-target('default': "") 
-{
-	depends( validateDomainClass, generateFlexDefaultStructure, generateFlexBuilder, createFlexProperties, generateDefaults )
-	
-	generateVo(domainClass:getDomainClass(args))
+	doGenerateVo(domainClass: getDomainClass(args))
 }
 
 //"Create Value Object for AS3"
-generateVo = 
-{ Map args = [:] ->
-	
-	dftg = new DefaultFlexTemplateGenerator();
-	
+doGenerateVo = { Map args = [:] ->
+
+	CVU = loadClass('org.cubika.labs.scaffolding.utils.ConstraintValueUtils')
+
 	//ValidateDomainClass method
 	def domainClass = args["domainClass"]
-  
+
 	mapVOGenerated = [:]
 	mapVOHierarchyGenerated = [:]
-	
+
 	generateVO(domainClass)
 }
 
+void generateVO(domainClass) {
+	String nameDir = antProperty('vo.destdir') + "/$domainClass.propertyName"
+	ant.mkdir dir: nameDir
 
-void generateVO(domainClass)
-{
-	def nameDir = antProp.'vo.destdir'+"/${domainClass.propertyName}";
-	def classNameDir = "${nameDir}/${domainClass.shortName}VO.as";
-	def templateDir = "${flexScaffoldPluginDir}"+antProp.'vo.file';
-	
-	if (!new File(nameDir).exists())
-		Ant.mkdir(dir:nameDir)
-	
-	//if (new File(classNameDir).exists())
-		//Ant.input(addProperty: "${classNameDir}.overwrite", message: "${classNameDir} already exists. Overwrite? [Y/n]")
-    //if (Ant.antProject.properties."${classNameDir}.overwrite" == "n")
-    //    return
-	
-	dftg.generateTemplate(domainClass,templateDir,classNameDir)
-	println "${classNameDir} Done!"
-	
-	mapVOGenerated.put(domainClass,domainClass)
-	mapVOHierarchyGenerated.put(domainClass,domainClass)
-	
-	generateRelations(domainClass)
-	generateHierarchy(domainClass)
+	String className = "$nameDir/${domainClass.shortName}VO.as"
+	String template = pluginDirPath + antProperty('vo.file')
+
+//	if (new File(className).exists()) {
+//		ant.input(addProperty: "${className}.overwrite", message: "$className already exists. Overwrite? [Y/n]")
+//	}
+//	if (ant.antProject.properties."${className}.overwrite" == "n") {
+//		return
+//	}
+
+	templateGenerator.generateTemplate domainClass, template, className
+	println "$className Done!"
+
+	mapVOGenerated[domainClass] = domainClass
+	mapVOHierarchyGenerated[domainClass] = domainClass
+
+	generateRelations domainClass
+	generateHierarchy domainClass
 }
 
-void generateHierarchy(domainClass)
-{
-	Class superClass = domainClass.getClazz().getSuperclass();
+void generateHierarchy(domainClass) {
+	Class superClass = domainClass.clazz.superclass
 
-	while (!superClass.equals(Object.class) && !superClass.equals(GroovyObject.class)) 
-	{
-  	GrailsDomainClass gdc = (GrailsDomainClass) grailsApp.getDomainClass(superClass.getName())
+	while (!superClass.equals(Object) && !superClass.equals(GroovyObject)) {
+		def gdc = grailsApp.getDomainClass(superClass.name)
+		if (gdc == null || gdc.subClasses == null) {
+			println "did not find superclass names when mapping inheritance...."
+			break
+		}
 
-    if (gdc == null || gdc.getSubClasses() == null)
-		{
-    	println "did not find superclass names when mapping inheritance...."	
-      break
-    }
+		if (!mapVOGenerated.containsKey(gdc)) {
+			generateVO(gdc)
+		}
 
-		if (!mapVOGenerated.containsKey(gdc))
-	 		generateVO(gdc)
-	
-		superClass = superClass.getSuperclass()	
-   }
+		superClass = superClass.superclass
+	}
 }
 
-void generateRelations(domainClass)
-{
-	domainClass.properties.each
-	{
-		if ((it.isOneToOne() || it.isOneToMany() || it.isManyToOne()) && CVU.display(it))
-		{
-			if (!mapVOGenerated.containsKey(it.referencedDomainClass))
-			{
-				generateVO(it.referencedDomainClass)
+void generateRelations(domainClass) {
+	domainClass.properties.each {
+		if ((it.isOneToOne() || it.isOneToMany() || it.isManyToOne()) && CVU.display(it)) {
+			if (!mapVOGenerated.containsKey(it.referencedDomainClass)) {
+				generateVO it.referencedDomainClass
 			}
 		}
 	}
 }
+
+setDefaultTarget 'generateVo'

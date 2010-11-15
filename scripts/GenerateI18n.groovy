@@ -1,4 +1,6 @@
-/*
+/**
+ * Copyright 2009-2010 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,61 +14,43 @@
  * limitations under the License.
  */
 
-import org.cubika.labs.scaffolding.i18n.I18nBuilder
+includeTargets << new File("$flexScaffoldPluginDir/scripts/_FlexScaffoldCommon.groovy")
 
-Ant.property(environment:"env")
-grailsHome = Ant.antProject.properties."env.GRAILS_HOME"
+target(generateI18n: "Generates i18n messages for domain classes") {
+	depends(generateCommon)
 
-//-----------------
-Ant.property(file:"${flexScaffoldPluginDir}/scripts/flexScaffold.properties")
-def antProp = Ant.project.properties
-Ant.property(file:"${basedir}/grails-app/i18n/i18n.properties")
-antProp = Ant.project.properties
-//-----------------
-
-//Private scripts
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_CreateFlexProperties.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateDefaults.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateEclipse.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateStructure.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_ValidateDomainClass.groovy" )
-
-target('default': "Generates i18n messages for domain classes") 
-{
-	depends( validateDomainClass, generateFlexDefaultStructure, generateFlexBuilder, createFlexProperties, generateDefaults )
-  
 	def name = argsMap["params"][0]
-		
-	args = [:]
-	
-	args['name'] = name
-	args['runHierarchy'] = false
-	
-	generateI18nMessages(args)
+	args = [name: name, runHierarchy: false]
+
+	doGenerateI18n args
 }
 
-generateI18nMessages = { Map args = [:] ->
+doGenerateI18n = { Map args = [:] ->
+
+	loadI18nProperties()
 
 	mapI18nGenerated = [:]
-	
-	defaultLocale = antProp.'locale.default'
-  
-	def locales = antProp.'locale.locales'
 
-	if (args['name'] != "*")
-	{
+	defaultLocale = antProperty('locale.default')
+	I18nBuilder = loadClass('org.cubika.labs.scaffolding.i18n.I18nBuilder')
+	i18nBuilder = I18nBuilder.newInstance(defaultLocale)
+
+	def locales = antProperty('locale.locales')
+
+	if (args['name'] != "*") {
 		//If runHierarchy is true, comes from GenerateAllFlex and we don't want generate all locales
-		if (args['runHierarchy'])
+		if (args['runHierarchy']) {
 			locales = "$defaultLocale"
-		else
+		}
+		else {
 			locales = "$defaultLocale, $locales"
-			
-		generatesI18n(getDomainClass(args['name']), locales, args['runHierarchy'])
+		}
+
+		generateI18nSingle(getDomainClass(args['name']), locales, args['runHierarchy'])
 	}
-	else if (args['name'] == "*")
-	{
+	else if (args['name'] == "*") {
 		locales = "$defaultLocale, $locales"
-		generatesAllI18n(grailsApp.domainClasses,locales)
+		generateI18nAll grailsApp.domainClasses, locales
 	}
 }
 
@@ -75,19 +59,15 @@ generateI18nMessages = { Map args = [:] ->
  * @param domanClass
  * @param runHierarchy - if it's true, run all classes related with DomainClass.
  */
-void generatesI18n(domainClass, locales,runHierarchy)
-{
-	i18nBuilder = new I18nBuilder(defaultLocale)
-	locales.split(",").each
-	{
+void generateI18nSingle(domainClass, locales, runHierarchy) {
+	locales.split(",").each {
 		print "Building $it:"
 		i18nBuilder.changeLocale(it.trim())
-		generateProperties(domainClass,runHierarchy)
+		generateProperties domainClass, runHierarchy
 		//Save message{suffix}.properties
 		i18nBuilder.store()
 		mapI18nGenerated = [:]
-		println ""
-		println "Locale $it Done!"
+		println "\nLocale $it Done!"
 	}
 }
 
@@ -95,49 +75,48 @@ void generatesI18n(domainClass, locales,runHierarchy)
  * Generates all classes properties
  * @param domanClass
  */
-void generatesAllI18n(domainClasses, locales)
-{
-	i18nBuilder = new I18nBuilder(defaultLocale)
-	locales.split(",").each
-	{
+void generateI18nAll(domainClasses, locales) {
+	locales.split(",").each {
 		print "Building $it:"
 		i18nBuilder.changeLocale(it.trim())
-		domainClasses.each 
-		{
-			generateProperties(it,false)
-		}
+		domainClasses.each { generateProperties(it, false) }
 		//Save message{suffix}.properties
 		i18nBuilder.store()
-		println ""
-		println "Locale $it Done!"
+		println "\nLocale $it Done!"
 	}
 }
 
-void generateProperties(domainClass, runHierarchy=true)
-{
-    if (!domainClass)
-      return
+void generateProperties(domainClass, runHierarchy = true) {
+	if (!domainClass) {
+		return
+	}
 
-	print " ${domainClass?.shortName}"
+	print " $domainClass.shortName"
 	i18nBuilder.build(domainClass)
-	
-	if (runHierarchy)
-	{
-		mapI18nGenerated.put(domainClass,domainClass)
-		generateHierarchy(domainClass)
+
+	if (runHierarchy) {
+		mapI18nGenerated[domainClass] = domainClass
+		generateHierarchy domainClass
 	}
 }
 
-void generateHierarchy(domainClass)
-{
-	domainClass.properties.each
-	{
-		if (it.isOneToOne() || it.isOneToMany() || it.isManyToOne())
-		{
-			if (!mapI18nGenerated.containsKey(it.referencedDomainClass))
-			{
-				generateProperties(it.referencedDomainClass)
+void generateHierarchy(domainClass) {
+	domainClass.properties.each {
+		if (it.isOneToOne() || it.isOneToMany() || it.isManyToOne()) {
+			if (!mapI18nGenerated.containsKey(it.referencedDomainClass)) {
+				generateProperties it.referencedDomainClass
 			}
 		}
 	}
 }
+
+loadI18nProperties = { ->
+	String name = "$basedir/grails-app/i18n/i18n.properties"
+	if (!new File(name).exists()) {
+		// should have been created when installing, but we can re-copy
+		ant.copy file: "$pluginDirPath/grails-app/i18n/i18n.properties", tofile: name
+	}
+	ant.property file: name
+}
+
+setDefaultTarget 'generateI18n'

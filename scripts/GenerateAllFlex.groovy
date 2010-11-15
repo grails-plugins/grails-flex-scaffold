@@ -1,5 +1,5 @@
 /**
- * Copyright 2009 the original author or authors.
+ * Copyright 2009-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,206 +12,179 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @author Ezequiel Martin Apfel
- * @since 23-Feb-2009
  */
 
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
-import org.cubika.labs.scaffolding.utils.ConstraintValueUtils as CVU
-import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
-import org.cubika.labs.scaffolding.utils.I18nUtils
+/**
+ * @author Ezequiel Martin Apfel
+ */
 
-FLEX_HOME = Ant.project.properties."env.FLEX_HOME"
-grailsHome = Ant.project.properties."environment.GRAILS_HOME"
-
-Ant.property(file:"${flexScaffoldPluginDir}/scripts/flexScaffold.properties")
-
-def antProp = Ant.project.properties
+includeTargets << new File("$flexScaffoldPluginDir/scripts/_FlexScaffoldCommon.groovy")
 
 //Public scripts
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateVo.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateView.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateEvent.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateModel.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateCommand.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateDelegate.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateService.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/GenerateI18n.groovy" )
+includeTargets << new File("$pluginDirPath/scripts/GenerateVo.groovy")
+includeTargets << new File("$pluginDirPath/scripts/GenerateView.groovy")
+includeTargets << new File("$pluginDirPath/scripts/GenerateEvent.groovy")
+includeTargets << new File("$pluginDirPath/scripts/GenerateModel.groovy")
+includeTargets << new File("$pluginDirPath/scripts/GenerateCommand.groovy")
+includeTargets << new File("$pluginDirPath/scripts/GenerateDelegate.groovy")
+includeTargets << new File("$pluginDirPath/scripts/GenerateService.groovy")
+includeTargets << new File("$pluginDirPath/scripts/GenerateI18n.groovy")
 
-//Private scripts
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_CreateFlexProperties.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateDefaults.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateEclipse.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateStructure.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_ValidateDomainClass.groovy" )
+target(generateAllFlex: "Generates all artifacts for the specified domain class(es)") {
+	depends(generateCommon)
 
+	I18nUtils = loadClass('org.cubika.labs.scaffolding.utils.I18nUtils')
+	CVU = loadClass('org.cubika.labs.scaffolding.utils.ConstraintValueUtils')
 
+	mapGenerated = [:]
 
-target('default': "The description of the script goes here!") 
-{
-  depends( validateDomainClass, generateFlexDefaultStructure, generateFlexBuilder, createFlexProperties, generateDefaults )
-	
-	mapGenerated = new HashMap()
-	
 	generateAllFlex(args.trim())
 }
 
-void generateAllFlex(name)
-{
+void generateAllFlex(String name) {
 	def domainClasses = []
-	//If use generate-all-flex domainClass 
-	def generate = false
-	
-	if (name != "*")
-	{
-		//ValidateDomainClass method
-		domainClasses.add(getDomainClass(name))
-		generate = true
-	}
-	else
-	{
+	//If use generate-all-flex domainClass
+	boolean generate = false
+
+	if (name == "*") {
 		domainClasses = grailsApp.domainClasses
 	}
-	
-	domainClasses.each
-	{	
-		if (CVU.generate(it) || generate)
-		{
-			println "Generate Scaffold for $it.propertyName"
-			println ""
-			
-			generateVo(domainClass:it)
-			generateViews(domainClass:it)
-			generateEvents(domainClass:it)
-			generateCRUDCommands(domainClass:it)
-			generateModel(domainClass:it,addToModel:true)
-			generateDelegate(domainClass:it)
-			generateService(domainClass:it)
-			generateI18nMessages(name:it.fullName,runHierarchy:true)
-			addToNavigationModel(it)
-			addToMain(it)
-			addToMainLocale(it)
-			
+	else {
+		//ValidateDomainClass method
+		domainClasses << getDomainClass(name)
+		generate = true
+	}
+
+	domainClasses.each {
+		if (generate || CVU.generate(it)) {
+			println "Generate Scaffold for $it.propertyName\n"
+
+			doGenerateVo domainClass: it
+			doGenerateView domainClass: it
+			doGenerateEvent domainClass: it
+			doGenerateCommand domainClass: it
+			doGenerateModel domainClass: it, addToModel: true
+			doGenerateDelegate domainClass: it
+			doGenerateService domainClass: it
+			doGenerateI18n name: it.fullName, runHierarchy: true
+			addToNavigationModel it
+			addToMain it
+			addToMainLocale it
+
 			println "-------------------------------------"
 		}
 	}
-	
+
 	println "Generate Done!"
 }
 
-void addToNavigationModel(domainClass)
-{
-	if (!new File(antProp.'model.destfile').exists())
-		Ant.copy(file:"${flexScaffoldPluginDir}"+antProp.'model.navigationfile', tofile: antProp.'model.destfile', overwrite: true)
+void addToNavigationModel(domainClass) {
+	if (!new File(antProperty('model.destfile')).exists()) {
+		ant.copy file: pluginDirPath + antProperty('model.navigationfile'),
+		         tofile: antProperty('model.destfile'), verbose: true
+	}
 
+	file = ant.fileset(dir: antProperty('model.destdir')) {
+		include name: antProperty('model.navigation')
+		contains text: "\"$domainClass.propertyName\"", casesensitive: false
+	}
 
-    file =  Ant.fileset(dir: antProp.'model.destdir') {
-                        include(name:antProp.'model.navigation')
-                        contains(text:"\"${domainClass.propertyName}\"", casesensitive: false)
-            }
+	if (file.size() > 0) {
+		return
+	}
 
-    if (file.size() > 0)
-            return
+	String propertyName = domainClass.propertyName
+	String groupName = CVU.groupName(domainClass)
 
-    def propertyName = domainClass.propertyName;
-    def groupName = CVU.groupName(domainClass)
+	if (groupName) {
+		groupName = groupName.replaceAll(" ", "")
+		groupName = "${groupName.toLowerCase()}GroupView#"
+		println "Setting groupName " + groupName
+	}
+	else {
+		groupName = ""
+	}
 
-    if (groupName)
-    {
-        groupName = groupName.replaceAll(" ","")
-        groupName = "${groupName.toLowerCase()}GroupView#"
-        println "Setting groupName " + groupName;
-    }
-
-    else
-        groupName = ""
-
-    Ant.replace(file: antProp.'model.destfile',
-          token: "//DefaultNavigationMap - Not Remove", value: "//DefaultNavigationMap - Not Remove\n	"+
-                                    "		defaultNavigationMap[\"${propertyName}\"] = "+
-                                    "{name:\"${groupName}${propertyName}CRUDView\",list:\"${groupName}${propertyName}List\","+
-                                    "edit:\"${groupName}${propertyName}Edit\",nav:{list:\"edit\",edit:\"list\"}};")
+	ant.replace file: antProperty('model.destfile'),
+	            token: "//DefaultNavigationMap - Not Remove",
+	            value: "//DefaultNavigationMap - Not Remove\n	" +
+						"		defaultNavigationMap[\"$propertyName\"] = " +
+						"{name:\"$groupName${propertyName}CRUDView\",list:\"$groupName${propertyName}List\"," +
+						"edit:\"$groupName${propertyName}Edit\",nav:{list:\"edit\",edit:\"list\"}};"
 }
 
-void addToMain(domainClass)
-{
-	if (!new File(antProp.'main.destdir').exists())
-	  Ant.copy(file: "${flexScaffoldPluginDir}"+antProp.'main.file', tofile: antProp.'main.destdir', overwrite: true)
-	
-	if (!new File(antProp.'login.destdir').exists())
-	  Ant.copy(file: "${flexScaffoldPluginDir}"+antProp.'view.login', tofile: antProp.'login.destdir', overwrite: true)
+void addToMain(domainClass) {
+	ant.copy file: pluginDirPath + antProperty('main.file'),
+	         tofile: antProperty('main.destdir'), verbose: true
 
-	if (!new File(antProp.'principal.destdir').exists())
-	  Ant.copy(file: "${flexScaffoldPluginDir}"+antProp.'view.principal', tofile: antProp.'principal.destdir', overwrite: true)
+	ant.copy file: pluginDirPath + antProperty('view.login'),
+	         tofile: antProperty('login.destdir'), verbose: true
 
-	def groupName = CVU.groupName(domainClass)
-	def tabName // name to be showed in the upper tab
-	def propertyName
-	def name
-	
-	if (!groupName)
-	{
+	ant.copy file: pluginDirPath + antProperty('view.principal'),
+	         tofile: antProperty('principal.destdir'), verbose: true
+
+	String groupName = CVU.groupName(domainClass)
+	String tabName // name to be showed in the upper tab
+	String propertyName
+	String name
+
+	if (!groupName) {
 		groupName = "${domainClass.shortName}CRUDView"
 		propertyName = domainClass.propertyName
 		name = "${propertyName}CRUDView"
 		tabName = propertyName
 	}
-	else
-	{
+	else {
 		groupName = groupName.replaceAll(" ", "")
 		propertyName = groupName.toLowerCase()
 		groupName = "${groupName}GroupView"
 		name = "${propertyName}GroupView"
-		tabName = CVU.groupName(domainClass) 
+		tabName = CVU.groupName(domainClass)
 	}
-	
-	
-	
-	file =  Ant.fileset(dir: antProp.'view.destdir') {
-		      include(name:"PrincipalView.mxml")
-	          contains(text:"<view${groupName}:${groupName}", casesensitive: false)
+
+	file =  ant.fileset(dir: antProperty('view.destdir')) {
+		include name: "PrincipalView.mxml"
+		contains text: "<view${groupName}:$groupName", casesensitive: false
 	}
-				
-	if (!(file.size() > 0))
-	{
-		Ant.replace(file: antProp.'principal.destdir',
-          			token: "><!--NS-->", value: "\n	xmlns:view${groupName}=\"view.${propertyName}.*\"><!--NS-->")
 
-	    Ant.replace(file: antProp.'principal.destdir',
-				    token: "<!--CRUDVIEWS-->", value: "<!--CRUDVIEWS-->\n		"+
-					"<view${groupName}:${groupName} height=\"100%\" "+
-					"label=\"{MultipleRM.getString(MultipleRM.localePrefix,'${propertyName}.label')}\" name=\"${name}\"/>")
+	if (!(file.size() > 0)) {
+		ant.replace file: antProperty('principal.destdir'),
+		            token: "><!--NS-->",
+		            value: "\n	xmlns:view${groupName}=\"view.${propertyName}.*\"><!--NS-->"
+
+		ant.replace file: antProperty('principal.destdir'),
+		            token: "<!--CRUDVIEWS-->",
+		            value: "<!--CRUDVIEWS-->\n		" +
+							"<view${groupName}:$groupName height=\"100%\" " +
+							"label=\"{MultipleRM.getString(MultipleRM.localePrefix,'${propertyName}.label')}\" name=\"$name\"/>"
 	}
-									
-	Ant.replaceregexp(file: antProp.'principal.destdir',
-          		match: ".*Resource.*\n*", 
-          		replace: "@metadata@")
 
-	Ant.replaceregexp(file: antProp.'principal.destdir',
-          		match: "@metadata@", 
-          		replace: "${I18nUtils.getMetaTags()}")						
-	
+	ant.replaceregexp file: antProperty('principal.destdir'),
+	                  match: ".*Resource.*\n*",
+	                  replace: "@metadata@"
 
-    Ant.replaceregexp(file: antProp.'principal.destdir',
-          		match: "private var localesCollection:ArrayCollection.*", 
-          		replace: "${I18nUtils.getLocalesCollection()}",byline: "false", flags:"m")
+	ant.replaceregexp file: antProperty('principal.destdir'),
+	                  match: "@metadata@",
+	                  replace: "${I18nUtils.getMetaTags()}"
+
+	ant.replaceregexp file: antProperty('principal.destdir'),
+	                  match: "private var localesCollection:ArrayCollection.*",
+	                  replace: "${I18nUtils.getLocalesCollection()}", byline: "false", flags: "m"
 }
 
-void addToMainLocale(domainClass)
-{
-	String stringFile = new File(antProp.'principal.destdir').text
-	
-	stringFile = stringFile.replaceAll(".*Resource.*\n*","##")
-	stringFile = stringFile.replaceAll("##.*#",I18nUtils.getMetaTags())						
-	stringFile = stringFile.replaceAll("private var localesCollection:ArrayCollection.*","${I18nUtils.getLocalesCollection()}")
-	
-	def file = new File(antProp.'principal.destdir')
-	
-	def writer = file.newWriter()
-	
+void addToMainLocale(domainClass) {
+	String stringFile = new File(antProperty('principal.destdir')).text
+
+	stringFile = stringFile.replaceAll(".*Resource.*\n*", "##")
+	stringFile = stringFile.replaceAll("##.*#", I18nUtils.getMetaTags())
+	stringFile = stringFile.replaceAll(
+		"private var localesCollection:ArrayCollection.*",
+		"${I18nUtils.getLocalesCollection()}")
+
+	def writer = new File(antProperty('principal.destdir')).newWriter()
 	writer << stringFile
-	
 	writer.flush()
 	writer.close()
 }
+
+setDefaultTarget 'generateAllFlex'

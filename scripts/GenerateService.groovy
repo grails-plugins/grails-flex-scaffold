@@ -1,42 +1,39 @@
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
-import org.cubika.labs.scaffolding.generator.DefaultFlexTemplateGenerator
+/**
+ * Copyright 2009-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-grailsHome = Ant.project.properties."environment.GRAILS_HOME"
+includeTargets << new File("$flexScaffoldPluginDir/scripts/_FlexScaffoldCommon.groovy")
 
-Ant.property(file:"${flexScaffoldPluginDir}/scripts/flexScaffold.properties")
+target(generateService: 'Generate Domain Delegate') {
+	depends(generateCommon)
 
-def antProp = Ant.project.properties
-
-//Private scripts
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_CreateFlexProperties.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateDefaults.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateEclipse.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_GenerateStructure.groovy" )
-includeTargets << new File ( "${flexScaffoldPluginDir}/scripts/_ValidateDomainClass.groovy" )
-
-target('default': "") 
-{
-	depends(validateDomainClass, generateFlexDefaultStructure, generateFlexBuilder, createFlexProperties, generateDefaults )
-	generateService(domainClass:getDomainClass(args))
+	doGenerateService(domainClass: getDomainClass(args))
 }
 
-//Generate Domain Delegate
-generateService =
-{ Map args = [:] ->
-	
+doGenerateService = { Map args = [:] ->
+
 	def domainClass = args["domainClass"]
-  
-	dftg = new DefaultFlexTemplateGenerator();
-	
-	def classNameFile = ""
-	def templateFile = ""
-	
-	classNameFile = "./grails-app/services/${domainClass.shortName}Service.groovy"
-	templateFile = "${flexScaffoldPluginDir}"+antProp.'service.file'
-	
+
+	String classNameFile = "$basedir/grails-app/services/${domainClass.shortName}Service.groovy"
+	String templateFile = pluginDirPath + antProperty('service.file')
+
 	//if (new File(classNameFile).exists())
 	//	return
-	
-	dftg.generateTemplate(domainClass,templateFile,classNameFile)
-	println "${classNameFile} Done!"
+
+	templateGenerator.generateTemplate domainClass, templateFile, classNameFile
+	println "$classNameFile Done!"
 }
+
+setDefaultTarget 'generateService'
